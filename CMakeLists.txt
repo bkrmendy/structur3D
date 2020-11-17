@@ -16,7 +16,7 @@ add_library(structur3d_base SHARED
         src/version.c
 
         src/db/NodeType.cpp
-        src/db/SQLite3Database.cpp
+        src/db/DatabaseImpl.cpp
 
         src/document/DocumentImpl.cpp
 
