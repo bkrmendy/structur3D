@@ -7,7 +7,9 @@
 //
 
 #ifndef SetOperationType_h
-#define SetOperationType_h
+#define SetOperationType_h]
+
+#include <optional>
 
 namespace S3D {
 enum class SetOperationType {
@@ -15,6 +17,11 @@ enum class SetOperationType {
     Subtraction,
     Intersection
 };
+
+int from_operationType(const SetOperationType& type);
+
+std::optional<SetOperationType> to_operationType(int typeId);
+
 }
 
 #endif /* SetOperationType_h */

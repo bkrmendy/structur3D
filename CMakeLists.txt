@@ -24,7 +24,7 @@ add_library(structur3d_base SHARED
 
         src/mesh/Mesh.cpp
 
-        src/data/Graph.cpp)
+        src/data/Graph.cpp src/base/SetOperationType.cpp)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})

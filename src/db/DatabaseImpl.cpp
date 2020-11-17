@@ -21,21 +21,6 @@
 
 namespace S3D {
 
-int DatabaseImpl::from_operationType(const SetOperationType &type) {
-    switch (type) {
-        case SetOperationType::Union: return 0;
-        case SetOperationType::Intersection: return 1;
-        case SetOperationType::Subtraction: return 2;
-    }
-}
-
-SetOperationType DatabaseImpl::to_operationType(int typeId) {
-    if (typeId == 0) { return SetOperationType::Union; }
-    if (typeId == 1) { return SetOperationType::Intersection; }
-    if (typeId == 2) { return SetOperationType::Subtraction; }
-    throw 0; // todo
-}
-
 void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, bool deleted) {
     std::string eid = to_string(entity);
     uint64_t stamp = make_timestamp();
@@ -361,7 +346,12 @@ std::optional<SetOp> DatabaseImpl::setop(const ID &from) {
         return std::nullopt;
     }
 
-    return SetOp(from, to_operationType(res.front().type));
+    auto type = to_operationType(res.front().type);
+    if (!type.has_value()) {
+        return std::nullopt;
+    }
+
+    return SetOp(from, type.value());
 }
 
 std::vector<std::string> DatabaseImpl::schema() {

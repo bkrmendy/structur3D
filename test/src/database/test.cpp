@@ -64,3 +64,48 @@ TEST(DatabaseImplTests, CreateSetOpNode) {
     EXPECT_EQ(node->getID(), entity);
     EXPECT_EQ(node->type, setop);
 }
+
+TEST(DatabaseImplTests, RetractSphereNode) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, RetractSetNode) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, LookupNonExistentSphere) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, LookUpNonExistentSetNode) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, LookupIncompleteSphere) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, LookUpIncompleteSetNode) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, RadiusCRDTProperty) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, CoordinateCRDTProperty) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, SetOperationTypeCRDTProperty) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, NameCRDTProperty) {
+    FAIL() << "Not implemented";
+}
+

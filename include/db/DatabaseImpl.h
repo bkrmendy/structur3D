@@ -49,10 +49,6 @@ public:
 
     int is_deleted(bool deleted) { return deleted ? 1 : 0; }
 
-    int from_operationType(const SetOperationType& type);
-
-    SetOperationType to_operationType(int typeId);
-
     void upsertI(const ID& entity, const Coord& coord, bool deleted);
 
     void upsertI(const ID& entity, const RADIUS& radius, bool deleted);
