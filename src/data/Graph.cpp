@@ -9,7 +9,7 @@
 #include <map>
 #include <vector>
 
-#include "./Graph.h"
+#include "data/Graph.h"
 
 namespace S3D {
 const std::vector<std::shared_ptr<Node>> Graph::roots() const {
