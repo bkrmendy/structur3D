@@ -1,0 +1,28 @@
+//
+//  DocumentWithName.h
+//  cross-platform-game
+//
+//  Created by Berci on 2020. 11. 14..
+//  Copyright © 2020. Berci. All rights reserved.
+//
+
+#ifndef DocumentWithName_h
+#define DocumentWithName_h
+
+#include <string>
+
+#include "../data/Base.h"
+
+namespace S3D {
+
+struct DocumentWithName {
+    const ID uid;
+    std::string name;
+
+    DocumentWithName(const ID& uid, const std::string& name) : uid{uid}, name{name} { }
+};
+
+}
+
+
+#endif /* DocumentWithName_h */
