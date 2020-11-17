@@ -13,7 +13,7 @@
 
 namespace S3D {
 
-ViewModelImpl::ViewModelImpl(std::unique_ptr<Database> db)
+ViewModelImpl::ViewModelImpl(std::shared_ptr<Database> db)
     : db{std::move(db)}
     , cancellables{}
     , documents_{}

@@ -6,7 +6,13 @@
 //  Copyright © 2020. Berci. All rights reserved.
 //
 
+#include <future>
+
 #include "document/DocumentImpl.h"
+#include "data/Sphere.h"
+#include "data/SetOp.h"
+
+namespace S3D {
 
 Tree DocumentImpl::subTreeOf(const std::shared_ptr<Node> node) const {
     std::vector<Tree> subtrees{};
@@ -106,4 +112,6 @@ void DocumentImpl::update(const std::shared_ptr<Node> node) {
 
 const std::vector<std::unique_ptr<Mesh>>& DocumentImpl::meshes() const {
     return this->meshes_;
+}
+
 }

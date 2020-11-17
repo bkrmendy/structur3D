@@ -3,5 +3,39 @@ project(structur3d_base)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_library(structur3d_base SHARED src/db/NodeType.cpp src/db/SQLite3Database.cpp src/document/DocumentImpl.cpp src/vm/ViewmodelImpl.cpp)
-target_include_directories(structur3d_base PUBLIC thirdparty include)
+file(GLOB_RECURSE five_src src/five/*.cpp)
+
+file(GLOB sqlpp11_connector_sqlite_src
+        src/sqlpp11-connector-sqlite/*
+        src/sqlpp11-connector-sqlite/detail/*)
+
+add_library(structur3d_base SHARED
+        ${five_src}
+        ${sqlpp11_connector_sqlite_src}
+
+        src/version.c
+
+        src/db/NodeType.cpp
+        src/db/SQLite3Database.cpp
+
+        src/document/DocumentImpl.cpp
+
+        src/vm/ViewmodelImpl.cpp
+
+        src/mesh/Mesh.cpp
+
+        src/data/Graph.cpp)
+
+find_package(PNG)
+set(LIBS ${PNG_LIBRARIES})
+
+target_include_directories(structur3d_base PUBLIC
+        ${PNG_INCLUDE_DIR}
+        thirdparty
+        include
+        /usr/local/include
+        /usr/local/include/boost
+        /usr/local/include/eigen3)
+
+link_directories(/usr/local/lib/)
+target_link_libraries(structur3d_base LINK_PUBLIC sqlite3 ${LIBS})

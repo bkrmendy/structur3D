@@ -27,13 +27,13 @@ namespace S3D {
 
 class ViewModelImpl : public ViewModel {
 public:
-    std::unique_ptr<Database> db;
+    std::shared_ptr<Database> db;
     std::vector<DocumentWithName> documents_;
     std::optional<std::unique_ptr<Document>> currentDocument;
     std::vector<std::future<void>> cancellables;
     std::string message_;
 
-    ViewModelImpl(std::unique_ptr<Database> db);
+    ViewModelImpl(std::shared_ptr<Database> db);
 
     void open(const ID& document);
     void createDocument();

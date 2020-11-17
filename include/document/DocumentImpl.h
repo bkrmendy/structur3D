@@ -9,13 +9,19 @@
 #ifndef DocumentImpl_hpp
 #define DocumentImpl_hpp
 
-#include "./Document.h"
+#include "Document.h"
+#include "db/Database.h"
 
 namespace S3D {
 
 class DocumentImpl : public Document {
+    std::shared_ptr<Database> db;
+
     std::unique_ptr<Graph> graph_;
     std::vector<std::unique_ptr<Mesh>> meshes_;
+
+    std::vector<std::future<void>> cancellables;
+
     void regenMesh();
 public:
     void create(const std::shared_ptr<Node> node);

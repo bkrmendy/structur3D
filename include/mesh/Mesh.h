@@ -14,7 +14,7 @@
 #include <simd/simd.h>
 
 #include "data/Tree.h"
-#include "../renderer/types.h"
+#include "types.h"
 
 namespace S3D {
 class Mesh {

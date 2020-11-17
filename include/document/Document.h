@@ -12,11 +12,11 @@
 #include <memory>
 #include <vector>
 
-#include "../data/Edge.h"
-#include "../data/Node.h"
-#include "../data/Tree.h"
-#include "../data/Graph.h"
-#include "../mesh/Mesh.h"
+#include "data/Edge.h"
+#include "data/Node.h"
+#include "data/Tree.h"
+#include "data/Graph.h"
+#include "mesh/Mesh.h"
 
 namespace S3D {
 
