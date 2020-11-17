@@ -66,7 +66,27 @@ TEST(DatabaseImplTests, CreateSetOpNode) {
 }
 
 TEST(DatabaseImplTests, RetractSphereNode) {
-    FAIL() << "Not implemented";
+    auto db = S3D::DatabaseImpl::inMemory();
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entity = factory();
+    S3D::Coord coord = S3D::Coord{1,2,3};
+    auto radius = S3D::RADIUS{5};
+
+    db.upsert(document, "Test document");
+
+    db.create(entity, S3D::NodeType::Sphere, document);
+    db.upsert(entity, coord);
+    db.upsert(entity, radius);
+
+    db.retract(entity, coord);
+    db.retract(entity, radius);
+    db.remove(entity, document);
+
+    EXPECT_EQ(db.documents().size(), 0);
+    EXPECT_EQ(db.sphere(entity), std::nullopt);
 }
 
 TEST(DatabaseImplTests, RetractSetNode) {

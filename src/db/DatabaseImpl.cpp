@@ -292,6 +292,20 @@ std::vector<ID> DatabaseImpl::edges(const ID &of_entity) {
 
 std::optional<Sphere> DatabaseImpl::sphere(const ID &from) {
     std::string eid = to_string(from);
+
+    Schema::Document documentLookup;
+    auto lookup
+        = dynamic_select(*db)
+                    .columns(documentLookup.entity)
+                    .from(documentLookup)
+                    .where(documentLookup.deleted == 0 && documentLookup.entity == eid)
+                    .order_by(documentLookup.timestamp.desc())
+                    .limit(1u);
+
+    if (this->db->operator()(lookup).empty()) {
+        return std::nullopt;
+    }
+
     Schema::Radius radius;
     auto radiusLookup
         = dynamic_select(*db)
