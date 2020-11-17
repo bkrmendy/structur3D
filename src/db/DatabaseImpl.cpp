@@ -82,7 +82,29 @@ void DatabaseImpl::upsertI(const ID &entity, const SetOperationType &type, bool 
                   insertOp.type = from_operationType(type)));
 
     tx.commit();
+}
 
+void DatabaseImpl::upsertI(const ID &entity, const std::string &name, bool deleted) {
+    std::string eid = to_string(entity);
+    uint64_t stamp = make_timestamp();
+
+    auto tx = sqlpp::start_transaction(*db);
+    Schema::Name removeName;
+    this->db->operator()(
+            remove_from(removeName)
+                    .where(removeName.entity == eid
+                           && removeName.timestamp <= stamp
+                           || removeName.deleted == 1));
+
+    Schema::Name insertName;
+    this->db->operator()(
+            insert_into(insertName)
+                .set(insertName.entity = eid,
+                     insertName.timestamp = stamp,
+                     insertName.deleted = is_deleted(deleted),
+                     insertName.name = name));
+
+    tx.commit();
 }
 
 void DatabaseImpl::connectI(const ID &entity, const ID &entity_to, bool deleted) {
@@ -178,6 +200,14 @@ void DatabaseImpl::upsert(const ID &entity, const SetOperationType &type) {
     upsertI(entity, type, false);
 }
 
+void DatabaseImpl::upsert(const ID &eid, const std::string &name) {
+    upsertI(eid, name, false);
+}
+
+void DatabaseImpl::retract(const ID &eid, const std::string &name) {
+    upsertI(eid, name, true);
+}
+
 void DatabaseImpl::retract(const ID &entity, const SetOperationType &type) {
     upsertI(entity, type, true);
 }
@@ -224,9 +254,9 @@ std::vector<DocumentWithName> DatabaseImpl::documents() {
 
         if (not mayBeName.empty()) {
             std::stringstream stream{uid.document};
-            ID uid;
-            stream >> uid;
-            names.push_back(DocumentWithName{uid, mayBeName.front().name});
+            ID uid_temp;
+            stream >> uid_temp;
+            names.push_back(DocumentWithName{uid_temp, mayBeName.front().name});
         }
     }
 

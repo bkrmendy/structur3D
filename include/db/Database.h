@@ -37,6 +37,9 @@ struct Database {
     virtual void upsert(const ID&, const SetOperationType&) = 0;
     virtual void retract(const ID&, const SetOperationType&) = 0;
 
+    virtual void upsert(const ID&, const std::string& name) = 0;
+    virtual void retract(const ID&, const std::string& name) = 0;
+
     virtual void connect(const ID&, const ID&) = 0;
     virtual void disconnect(const ID&, const ID&) = 0;
 

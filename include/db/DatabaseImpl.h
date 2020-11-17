@@ -59,6 +59,8 @@ public:
 
     void upsertI(const ID& entity, const SetOperationType& type, bool deleted);
 
+    void upsertI(const ID& entity, const std::string& name, bool deleted);
+
     void connectI(const ID& entity, const ID& entity_to, bool deleted);
 
     void createI(const ID& entity, const NodeType type, const ID& document, bool deleted);
@@ -71,6 +73,9 @@ public:
 
     void upsert(const ID& entity, const SetOperationType& type) override;
     void retract(const ID& entity, const SetOperationType&) override;
+
+    void upsert(const ID &, const std::string &name) override;
+    void retract(const ID &, const std::string &name) override;
 
     void connect(const ID& entity, const ID& entity_to) override;
     void disconnect(const ID& entity, const ID& entity_to) override;

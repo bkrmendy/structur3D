@@ -10,14 +10,15 @@
 #define Coord_h
 
 namespace S3D {
-struct Coord {
-    float x;
-    float y;
-    float z;
+    struct Coord {
+        float x;
+        float y;
+        float z;
 
-    Coord() = delete;
-    Coord(float x, float y, float z) : x{x}, y{y}, z{z} { }
-};
+        Coord() = delete;
+
+        Coord(float x, float y, float z) : x{x}, y{y}, z{z} {}
+    };
 }
 
 
