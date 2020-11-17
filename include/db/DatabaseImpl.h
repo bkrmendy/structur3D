@@ -1,5 +1,5 @@
 //
-//  SQLite3Database.h
+//  DatabaseImpl.h
 //  cross-platform-game
 //
 //  Created by Berci on 2020. 11. 11..
@@ -19,30 +19,30 @@ namespace sql = sqlpp::sqlite3;
 
 namespace S3D {
 
-class SQLite3Database : public Database {
+class DatabaseImpl : public Database {
     std::unique_ptr<sql::connection> db;
 public:
-    static SQLite3Database inMemory() {
+    static DatabaseImpl inMemory() {
         sql::connection_config config;
         config.path_to_database = ":memory:";
         config.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
         config.debug = true;
 
-        return SQLite3Database{std::make_unique<sql::connection>(config)};
+        return DatabaseImpl{std::make_unique<sql::connection>(config)};
     }
 
-    static SQLite3Database atPath(const char* path) {
+    static DatabaseImpl atPath(const char* path) {
         sql::connection_config config;
         config.path_to_database = path;
         config.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
-        return SQLite3Database{std::make_unique<sql::connection>(config)};
+        return DatabaseImpl{std::make_unique<sql::connection>(config)};
     }
 
     static std::vector<std::string> schema();
 
-    explicit SQLite3Database(std::unique_ptr<sql::connection> db) : db{std::move(db)} {
-        for (auto& column : SQLite3Database::schema()) {
+    explicit DatabaseImpl(std::unique_ptr<sql::connection> db) : db{std::move(db)} {
+        for (auto& column : DatabaseImpl::schema()) {
             this->db->execute(column);
         }
     }
@@ -84,8 +84,8 @@ public:
 
     std::optional<Sphere> sphere(const ID& from) override;
     std::optional<SetOp> setop(const ID& from) override;
-
 };
+
 }
 
 

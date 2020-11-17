@@ -1,5 +1,5 @@
 //
-//  SQLite3Database.cpp
+//  DatabaseImpl.cpp
 //  cross-platform-game
 //
 //  Created by Berci on 2020. 11. 11..
@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "db/SQLite3Database.h"
+#include "db/DatabaseImpl.h"
 #include "generated/tables.h"
 #include "data/Timestamp.h"
 
@@ -21,7 +21,7 @@
 
 namespace S3D {
 
-int SQLite3Database::from_operationType(const SetOperationType &type) {
+int DatabaseImpl::from_operationType(const SetOperationType &type) {
     switch (type) {
         case SetOperationType::Union: return 0;
         case SetOperationType::Intersection: return 1;
@@ -29,14 +29,14 @@ int SQLite3Database::from_operationType(const SetOperationType &type) {
     }
 }
 
-SetOperationType SQLite3Database::to_operationType(int typeId) {
+SetOperationType DatabaseImpl::to_operationType(int typeId) {
     if (typeId == 0) { return SetOperationType::Union; }
     if (typeId == 1) { return SetOperationType::Intersection; }
     if (typeId == 2) { return SetOperationType::Subtraction; }
     throw 0; // todo
 }
 
-void SQLite3Database::upsertI(const ID& entity, const Coord& coord, bool deleted) {
+void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, bool deleted) {
     std::string eid = to_string(entity);
     uint64_t stamp = make_timestamp();
 
@@ -61,7 +61,7 @@ void SQLite3Database::upsertI(const ID& entity, const Coord& coord, bool deleted
     tx.commit();
 }
 
-void SQLite3Database::upsertI(const ID &entity, const SetOperationType &type, bool deleted) {
+void DatabaseImpl::upsertI(const ID &entity, const SetOperationType &type, bool deleted) {
     std::string eid = to_string(entity);
     uint64_t stamp = make_timestamp();
 
@@ -85,7 +85,7 @@ void SQLite3Database::upsertI(const ID &entity, const SetOperationType &type, bo
 
 }
 
-void SQLite3Database::connectI(const ID &entity, const ID &entity_to, bool deleted) {
+void DatabaseImpl::connectI(const ID &entity, const ID &entity_to, bool deleted) {
     std::string eid = to_string(entity);
     std::string eid_to = to_string(entity_to);
     uint64_t stamp = make_timestamp();
@@ -109,7 +109,7 @@ void SQLite3Database::connectI(const ID &entity, const ID &entity_to, bool delet
     tx.commit();
 }
 
-void SQLite3Database::createI(const ID &entity, const NodeType type, const ID &document, bool deleted) {
+void DatabaseImpl::createI(const ID &entity, const NodeType type, const ID &document, bool deleted) {
     std::string eid = to_string(entity);
     std::string doc = to_string(document);
     uint64_t stamp = make_timestamp();
@@ -135,15 +135,15 @@ void SQLite3Database::createI(const ID &entity, const NodeType type, const ID &d
     tx.commit();
 }
 
-void SQLite3Database::upsert(const ID &entity, const Coord &coord) {
+void DatabaseImpl::upsert(const ID &entity, const Coord &coord) {
     this->upsertI(entity, coord, false);
 }
 
-void SQLite3Database::retract(const ID &entity, const Coord &coord) {
+void DatabaseImpl::retract(const ID &entity, const Coord &coord) {
     this->upsertI(entity, coord, false);
 }
 
-void SQLite3Database::upsertI(const ID &entity, const RADIUS &radius, bool deleted) {
+void DatabaseImpl::upsertI(const ID &entity, const RADIUS &radius, bool deleted) {
     std::string eid = to_string(entity);
     uint64_t stamp = make_timestamp();
 
@@ -166,39 +166,39 @@ void SQLite3Database::upsertI(const ID &entity, const RADIUS &radius, bool delet
     tx.commit();
 }
 
-void SQLite3Database::upsert(const ID &entity, const RADIUS &radius) {
+void DatabaseImpl::upsert(const ID &entity, const RADIUS &radius) {
     upsertI(entity, radius, false);
 }
 
-void SQLite3Database::retract(const ID &entity, const RADIUS &radius) {
+void DatabaseImpl::retract(const ID &entity, const RADIUS &radius) {
     upsertI(entity, radius, false);
 }
 
-void SQLite3Database::upsert(const ID &entity, const SetOperationType &type) {
+void DatabaseImpl::upsert(const ID &entity, const SetOperationType &type) {
     upsertI(entity, type, false);
 }
 
-void SQLite3Database::retract(const ID &entity, const SetOperationType &type) {
+void DatabaseImpl::retract(const ID &entity, const SetOperationType &type) {
     upsertI(entity, type, true);
 }
 
-void SQLite3Database::connect(const ID &entity, const ID &entity_to) {
+void DatabaseImpl::connect(const ID &entity, const ID &entity_to) {
     connectI(entity, entity_to, false);
 }
 
-void SQLite3Database::disconnect(const ID &entity, const ID &entity_to) {
+void DatabaseImpl::disconnect(const ID &entity, const ID &entity_to) {
     connectI(entity, entity_to, true);
 }
 
-void SQLite3Database::create(const ID &entity, const NodeType type, const ID &document) {
+void DatabaseImpl::create(const ID &entity, const NodeType type, const ID &document) {
     createI(entity, type, document, false);
 }
 
-void SQLite3Database::remove(const ID &entity, const ID &document) {
+void DatabaseImpl::remove(const ID &entity, const ID &document) {
     createI(entity, NodeType::Sphere, document, true);
 }
 
-std::vector<DocumentWithName> SQLite3Database::documents() {
+std::vector<DocumentWithName> DatabaseImpl::documents() {
     Schema::Document doc;
     auto docLookup =
         dynamic_select(*db)
@@ -233,7 +233,7 @@ std::vector<DocumentWithName> SQLite3Database::documents() {
     return names;
 }
 
-std::vector<IDWithType> SQLite3Database::entites(const ID &of_document) {
+std::vector<IDWithType> DatabaseImpl::entites(const ID &of_document) {
     std::string did = to_string(of_document);
     Schema::Document doc;
     auto lookup =
@@ -254,7 +254,7 @@ std::vector<IDWithType> SQLite3Database::entites(const ID &of_document) {
     return res;
 }
 
-std::vector<ID> SQLite3Database::edges(const ID &of_entity) {
+std::vector<ID> DatabaseImpl::edges(const ID &of_entity) {
     std::string eid = to_string(of_entity);
     Schema::Edge edge;
     auto lookup
@@ -274,7 +274,7 @@ std::vector<ID> SQLite3Database::edges(const ID &of_entity) {
     return res;
 }
 
-std::optional<Sphere> SQLite3Database::sphere(const ID &from) {
+std::optional<Sphere> DatabaseImpl::sphere(const ID &from) {
     std::string eid = to_string(from);
     Schema::Radius radius;
     auto radiusLookup
@@ -313,7 +313,7 @@ std::optional<Sphere> SQLite3Database::sphere(const ID &from) {
                   radiusRes.front().magnitude);
 }
 
-std::optional<SetOp> SQLite3Database::setop(const ID &from) {
+std::optional<SetOp> DatabaseImpl::setop(const ID &from) {
     std::string eid = to_string(from);
     Schema::Setoperationtype optype;
     auto optypeLookup
@@ -333,7 +333,7 @@ std::optional<SetOp> SQLite3Database::setop(const ID &from) {
     return SetOp(from, to_operationType(res.front().type));
 }
 
-std::vector<std::string> SQLite3Database::schema() {
+std::vector<std::string> DatabaseImpl::schema() {
     auto edge = R"(
     CREATE TABLE IF NOT EXISTS edge (
     deleted INTEGER NOT NULL DEFAULT 0,
