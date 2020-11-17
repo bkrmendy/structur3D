@@ -34,8 +34,33 @@ TEST(DatabaseImplTests, CreateSphere) {
     EXPECT_EQ(docs.at(0).uid, document);
 
     auto sphere = db.sphere(entity);
+    EXPECT_EQ(sphere->getID(), entity);
     EXPECT_FLOAT_EQ(sphere->radius, radius);
     EXPECT_FLOAT_EQ(sphere->coord.x, coord.x);
     EXPECT_FLOAT_EQ(sphere->coord.y, coord.y);
     EXPECT_FLOAT_EQ(sphere->coord.z, coord.z);
+}
+
+TEST(DatabaseImplTests, CreateSetOpNode) {
+    auto db = S3D::DatabaseImpl::inMemory();
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entity = factory();
+    auto type = S3D::NodeType::SetOperation;
+    auto setop = S3D::SetOperationType::Intersection;
+
+    db.upsert(document, "Test document");
+
+    db.create(entity, type, document);
+    db.upsert(entity, setop);
+
+    EXPECT_EQ(db.documents().size(), 1);
+    auto docs = db.documents();
+    EXPECT_EQ(docs.at(0).uid, document);
+
+    auto node = db.setop(entity);
+    EXPECT_EQ(node->getID(), entity);
+    EXPECT_EQ(node->type, setop);
 }

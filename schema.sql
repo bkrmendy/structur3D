@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS setoperationtype (
     deleted INTEGER NOT NULL DEFAULT 0,
     timestamp INTEGER NOT NULL,
     entity TEXT NOT NULL,
-    type INTEGER NOT NULL CHECK (type = 0 || type = 1 || type = 2)
+    type INTEGER NOT NULL CHECK (type = 0 or type = 1 or type = 2)
 );
 
 CREATE TABLE IF NOT EXISTS edge (

@@ -74,12 +74,13 @@ void DatabaseImpl::upsertI(const ID &entity, const SetOperationType &type, bool 
                    || removeOp.deleted == 1));
 
     Schema::Setoperationtype insertOp;
+    auto typeAsInteger = from_operationType(type);
     this->db->operator()(
         insert_into(insertOp)
              .set(insertOp.deleted = is_deleted(deleted),
                   insertOp.timestamp = stamp,
                   insertOp.entity = eid,
-                  insertOp.type = from_operationType(type)));
+                  insertOp.type = typeAsInteger));
 
     tx.commit();
 }
@@ -398,7 +399,7 @@ std::vector<std::string> DatabaseImpl::schema() {
         deleted INTEGER NOT NULL DEFAULT 0,
         timestamp INTEGER NOT NULL,
         entity TEXT NOT NULL,
-        type INTEGER NOT NULL CHECK (type = 0 || type = 1 || type = 2)
+        type INTEGER NOT NULL CHECK (type = 0 or type = 1 or type = 2)
     );
     )";
 
