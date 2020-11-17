@@ -39,3 +39,10 @@ target_include_directories(structur3d_base PUBLIC
 
 link_directories(/usr/local/lib/)
 target_link_libraries(structur3d_base LINK_PUBLIC sqlite3 ${LIBS})
+
+option(BUILD_TESTS "Build test suite" ON)
+
+if (BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(test)
+endif(BUILD_TESTS)
