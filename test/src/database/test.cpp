@@ -94,11 +94,19 @@ TEST(DatabaseImplTests, RetractSetNode) {
 }
 
 TEST(DatabaseImplTests, LookupNonExistentSphere) {
-    FAIL() << "Not implemented";
+    auto db = S3D::DatabaseImpl::inMemory();
+    auto factory = S3D::IDFactory();
+    auto entityFromThinAir = factory();
+
+    EXPECT_EQ(db.sphere(entityFromThinAir), std::nullopt);
 }
 
 TEST(DatabaseImplTests, LookUpNonExistentSetNode) {
-    FAIL() << "Not implemented";
+    auto db = S3D::DatabaseImpl::inMemory();
+    auto factory = S3D::IDFactory();
+    auto entityFromThinAir = factory();
+
+    EXPECT_EQ(db.setop(entityFromThinAir), std::nullopt);
 }
 
 TEST(DatabaseImplTests, LookupIncompleteSphere) {
