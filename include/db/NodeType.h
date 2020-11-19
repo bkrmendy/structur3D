@@ -9,6 +9,8 @@
 #ifndef NodeType_hpp
 #define NodeType_hpp
 
+#include <optional>
+
 namespace S3D {
 
 enum class NodeType {
@@ -16,9 +18,9 @@ enum class NodeType {
     SetOperation
 };
 
-int to_integral(const NodeType& type);
+size_t  to_integral(const NodeType& type);
 
-NodeType from_integral(int integral);
+std::optional<NodeType> from_integral(size_t integral);
 
 }
 #endif /* NodeType_hpp */

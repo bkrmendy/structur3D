@@ -5,7 +5,7 @@
 #include "data/SetOperationType.h"
 
 namespace S3D {
-    int from_operationType(const SetOperationType &type) {
+    size_t from_operationType(const SetOperationType &type) {
         switch (type) {
             case SetOperationType::Union:
                 return 0;
@@ -16,7 +16,7 @@ namespace S3D {
         }
     }
 
-    std::optional<SetOperationType> to_operationType(int typeId) {
+    std::optional<SetOperationType> to_operationType(size_t typeId) {
         if (typeId == 0) { return SetOperationType::Union; }
         if (typeId == 1) { return SetOperationType::Intersection; }
         if (typeId == 2) { return SetOperationType::Subtraction; }

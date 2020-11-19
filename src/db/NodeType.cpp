@@ -10,17 +10,17 @@
 
 namespace S3D {
 
-int to_integral(const NodeType& type) {
+size_t to_integral(const NodeType& type) {
     switch (type) {
         case NodeType::Sphere: return 0;
         case NodeType::SetOperation: return 1;
     }
 }
 
-NodeType from_integral(int integral) {
+std::optional<NodeType> from_integral(size_t integral) {
     if (integral == 0) { return NodeType::Sphere; }
     if (integral == 1) { return NodeType::SetOperation; }
-    throw 0;
+    return std::nullopt;
 }
 
 }

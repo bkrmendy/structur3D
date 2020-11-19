@@ -10,7 +10,7 @@
 TEST(DatabaseImplTests, TotallyNewDB){
     auto db = S3D::DatabaseImpl::inMemory(false);
 
-    EXPECT_EQ(db.documents().size(), 0);
+    EXPECT_TRUE(db.documents().empty());
 }
 
 TEST(DatabaseImplTests, CreateSphere) {
@@ -85,7 +85,7 @@ TEST(DatabaseImplTests, RetractSphereNode) {
     db.retract(entity, radius);
     db.remove(entity, document);
 
-    EXPECT_EQ(db.documents().size(), 0);
+    EXPECT_TRUE(db.documents().empty());
     EXPECT_EQ(db.sphere(entity), std::nullopt);
 }
 
@@ -107,9 +107,8 @@ TEST(DatabaseImplTests, RetractSetNode) {
     db.retract(entity, setop);
     db.remove(entity, document);
 
-    EXPECT_EQ(db.documents().size(), 0);
+    EXPECT_TRUE(db.documents().empty());
     EXPECT_EQ(db.setop(entity), std::nullopt);
-
 }
 
 TEST(DatabaseImplTests, LookupNonExistentSphere) {
@@ -178,24 +177,139 @@ TEST(DatabaseImplTests, LookUpIncompleteSetNode) {
     EXPECT_EQ(db.setop(entity), std::nullopt);
 }
 
+TEST(DatabaseImplTests, LookupDocumentWithoutName) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto makeID = S3D::IDFactory();
+
+    auto document = makeID();
+    auto dummy = makeID();
+
+    db.create(dummy, S3D::NodeType::Sphere, document);
+
+    EXPECT_TRUE(db.documents().empty());
+}
+
 TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
-    FAIL() << "Not implemented";
+    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto makeID = S3D::IDFactory();
+
+    auto document = makeID();
+    db.upsert(document, "Test Document");
+
+    auto unionNode = makeID();
+    db.create(unionNode, S3D::NodeType::SetOperation, document);
+    db.upsert(unionNode, S3D::SetOperationType::Union);
+
+    auto s1 = makeID();
+    db.create(s1, S3D::NodeType::Sphere, document);
+    db.upsert(s1, S3D::Coord{-1, -2, -3});
+    db.upsert(s1, S3D::RADIUS{2});
+
+    auto s2 = makeID();
+    db.create(s2, S3D::NodeType::Sphere, document);
+    db.upsert(s2, S3D::Coord{1, 2, 3});
+    db.upsert(s2, S3D::RADIUS{3});
+
+    db.connect(unionNode, s1);
+    db.connect(unionNode, s2);
+
+    EXPECT_EQ(db.documents().size(), 1);
+    EXPECT_EQ(db.entites(document).size(), 3);
+
+    EXPECT_TRUE(db.setop(unionNode).has_value());
+    EXPECT_TRUE(db.sphere(s1).has_value());
+    EXPECT_TRUE(db.sphere(s2).has_value());
+
+    EXPECT_EQ(db.edges(unionNode).size(), 2);
+    EXPECT_TRUE(db.edges(s1).empty());
+    EXPECT_TRUE(db.edges(s2).empty());
+
+    auto unionNodeFromDb = db.setop(unionNode);
+    EXPECT_EQ(unionNodeFromDb->type, S3D::SetOperationType::Union);
+
+    auto s1FromDb = db.sphere(s1);
+    EXPECT_EQ(s1FromDb->radius, 2);
+    EXPECT_FLOAT_EQ(s1FromDb->coord.x, -1);
+    EXPECT_FLOAT_EQ(s1FromDb->coord.y, -2);
+    EXPECT_FLOAT_EQ(s1FromDb->coord.z, -3);
+
+    auto s2FromDb = db.sphere(s2);
+    EXPECT_EQ(s2FromDb->radius, 3);
+    EXPECT_FLOAT_EQ(s2FromDb->coord.x, 1);
+    EXPECT_FLOAT_EQ(s2FromDb->coord.y, 2);
+    EXPECT_FLOAT_EQ(s2FromDb->coord.z, 3);
+
 }
 
 TEST(DatabaseImplTests, ReadEdges) {
-    FAIL() << "Not implemented";
-}
+    auto db = S3D::DatabaseImpl::inMemory(false);
+    S3D::IDFactory factory = S3D::IDFactory();
 
-TEST(DatabaseImplTests, ConnectEdges) {
-    FAIL() << "Not implemented";
+    auto e1 = factory();
+    auto e2 = factory();
+
+    db.connect(e1, e2);
+
+    auto edges_of_e1 = db.edges(e1);
+    auto edges_of_e2 = db.edges(e2);
+
+    EXPECT_EQ(edges_of_e1.size(), 1);
+    EXPECT_EQ(edges_of_e1.at(0), e2);
+    EXPECT_TRUE(edges_of_e2.empty());
 }
 
 TEST(DatabaseImplTests, DisconnectEdges) {
-    FAIL() << "Not implemented";
+    auto db = S3D::DatabaseImpl::inMemory(false);
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    auto e1 = factory();
+    auto e2 = factory();
+    auto e3 = factory();
+
+    db.connect(e1, e2);
+    db.connect(e1, e3);
+
+    EXPECT_EQ(db.edges(e1).size(), 2);
+
+    db.disconnect(e1, e2);
+
+    EXPECT_EQ(db.edges(e1).size(), 1);
+
+    EXPECT_EQ(db.edges(e1).at(0), e3);
 }
 
 TEST(DatabaseImplTests, DisconnectNonExistentEdges) {
-    FAIL() << "Not implemented";
+    auto db = S3D::DatabaseImpl::inMemory(false);
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    auto e1 = factory();
+    auto e2 = factory();
+    auto e3 = factory();
+
+    db.connect(e1, e2);
+    db.connect(e1, e3);
+
+    EXPECT_EQ(db.edges(e1).size(), 2);
+    EXPECT_TRUE(db.edges(e2).empty());
+    EXPECT_TRUE(db.edges(e3).empty());
+
+    db.disconnect(e2, e3);
+
+    EXPECT_EQ(db.edges(e1).size(), 2);
+    EXPECT_TRUE(db.edges(e2).empty());
+    EXPECT_TRUE(db.edges(e3).empty());
+}
+
+TEST(DatabaseImplTests, NodeTypeConversionTests) {
+    EXPECT_EQ(S3D::to_integral(S3D::NodeType::Sphere), 0);
+    EXPECT_EQ(S3D::to_integral(S3D::NodeType::SetOperation), 1);
+
+    EXPECT_EQ(S3D::from_integral(0), S3D::NodeType::Sphere);
+    EXPECT_EQ(S3D::from_integral(1), S3D::NodeType::SetOperation);
+
+    for (size_t i = 2; i < 100; ++i) {
+        EXPECT_EQ(S3D::from_integral(i), std::nullopt);
+    }
 }
 
 TEST(DatabaseImplTests, RadiusCRDTProperty) {

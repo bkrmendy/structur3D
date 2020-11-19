@@ -18,9 +18,9 @@ enum class SetOperationType {
     Intersection
 };
 
-int from_operationType(const SetOperationType& type);
+size_t from_operationType(const SetOperationType& type);
 
-std::optional<SetOperationType> to_operationType(int typeId);
+std::optional<SetOperationType> to_operationType(size_t typeId);
 
 }
 

@@ -264,7 +264,10 @@ std::vector<IDWithType> DatabaseImpl::entites(const ID &of_document) {
         ID uid;
         stream >> uid;
 
-        res.push_back(IDWithType{uid, from_integral(row.type) });
+        auto mayBeType = from_integral(row.type);
+        if (mayBeType.has_value()) {
+            res.push_back(IDWithType{uid, mayBeType.value() });
+        }
     }
 
     return res;
