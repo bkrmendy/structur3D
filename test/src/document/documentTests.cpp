@@ -2,6 +2,8 @@
 // Created by Berci on 2020. 11. 19..
 //
 
+#include <memory>
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
@@ -36,24 +38,14 @@ namespace S3D {
         MOCK_METHOD(std::optional<SetOp>, setop, (const ID& from), (override));
         MOCK_METHOD(std::vector<ID>, edges, (const ID&), (override));
     };
-}
 
-std::unique_ptr<S3D::DocumentImpl> exampleDocument() {
-        std::shared_ptr<S3D::MockDatabase> db = std::make_shared<S3D::MockDatabase>();
-        auto makeId = S3D::IDFactory();
-        const auto docId = makeId();
-        auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
-
-        auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
-        auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
-
-        auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
-        auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
-
-        std::vector<std::shared_ptr<S3D::Edge>> edges = { edge1, edge2 };
-        std::vector<std::shared_ptr<S3D::Node>> nodes = { unionNode, sphere1, sphere2 };
-
-        return std::make_unique<S3D::DocumentImpl>(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    class MockMeshFactory : public MeshFactory {
+        std::unique_ptr<Mesh> fromTree(const std::vector<Tree>&) {
+            std::vector<S3DVertex> vertices{};
+            std::vector<uint32_t> indices{};
+            return std::make_unique<Mesh>(vertices, indices);
+        }
+    };
 }
 
 TEST(DocumentTests, PropertyAccessorsOK) {
@@ -72,7 +64,7 @@ TEST(DocumentTests, PropertyAccessorsOK) {
     std::vector<std::shared_ptr<S3D::Edge>> edges = { edge1, edge2 };
     std::vector<std::shared_ptr<S3D::Node>> nodes = { unionNode, sphere1, sphere2 };
 
-    auto doc = S3D::DocumentImpl{docId, db, std::make_unique<S3D::Graph>(edges, nodes)};
+    auto doc = S3D::DocumentImpl{docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>()};
 
     EXPECT_EQ(doc.id(), docId);
     EXPECT_EQ(doc.graph()->edges, edges);
@@ -87,7 +79,7 @@ TEST(DocumentTests, UpdateSphereRadius) {
     std::vector<std::shared_ptr<S3D::Edge>> edges{};
     std::vector<std::shared_ptr<S3D::Node>> nodes = { sphere };
 
-    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     auto new_radius = S3D::RADIUS{100};
     EXPECT_CALL(*db, upsert(sphere->id(), new_radius)).Times(1);
@@ -106,7 +98,7 @@ TEST(DocumentTests, UpdateSphereCoords) {
     std::vector<std::shared_ptr<S3D::Edge>> edges{};
     std::vector<std::shared_ptr<S3D::Node>> nodes = { sphere };
 
-    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     auto new_coord = S3D::Coord{100, 200, 300};
     // todo: EXPECT CALL
@@ -127,7 +119,7 @@ TEST(DocumentTests, CreateSetOp) {
     std::vector<std::shared_ptr<S3D::Edge>> edges{};
     std::vector<std::shared_ptr<S3D::Node>> nodes{};
 
-    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     auto setop = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Intersection);
 
@@ -148,7 +140,7 @@ TEST(DocumentTests, CreateSphere) {
     std::vector<std::shared_ptr<S3D::Edge>> edges{};
     std::vector<std::shared_ptr<S3D::Node>> nodes{};
 
-    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
 
@@ -176,7 +168,7 @@ TEST(DocumentTests, RemoveSetOp) {
 
     std::vector<std::shared_ptr<S3D::Node>> nodes = {unionNode, sphere1, sphere2};
 
-    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     EXPECT_CALL(*db, remove(unionNode->id(), docId));
     EXPECT_CALL(*db, retract(unionNode->id(), S3D::SetOperationType::Union));
@@ -201,7 +193,7 @@ TEST(DocumentTests, RemoveSphere) {
 
     std::vector<std::shared_ptr<S3D::Node>> nodes = {unionNode, sphere1, sphere2};
 
-    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     EXPECT_CALL(*db, remove(sphere1->id(), docId));
     EXPECT_CALL(*db, retract(sphere1->id(), sphere1->radius));
@@ -227,7 +219,7 @@ TEST(DocumentTest, CreateEdge) {
 
     std::vector<std::shared_ptr<S3D::Node>> nodes = {unionNode, sphere1, sphere2};
 
-    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     EXPECT_CALL(*db, connect(unionNode->id(), sphere1->id())).Times(1);
 
@@ -253,7 +245,7 @@ TEST(DocumentTest, RemoveEdge) {
 
     std::vector<std::shared_ptr<S3D::Node>> nodes = {unionNode, sphere1, sphere2};
 
-    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     EXPECT_CALL(*db, disconnect(unionNode->id(), sphere1->id()));
 
