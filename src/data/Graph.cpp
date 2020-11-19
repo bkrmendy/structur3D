@@ -32,4 +32,22 @@ const std::vector<std::shared_ptr<Node>> Graph::roots() const {
 
     return res;
 }
+
+    Tree Graph::subTreeOf(const std::shared_ptr<Node>& node) const {
+        std::vector<Tree> subtrees{};
+        for (const auto& edge : this->edges) {
+            if (edge->from->id() == node->id()) {
+                subtrees.push_back(this->subTreeOf(edge->to));
+            }
+        }
+        return Tree{node, subtrees};
+    }
+
+    const std::vector<Tree> Graph::trees() const {
+        std::vector<Tree> res{};
+        for (const auto& root : this->roots()) {
+            res.push_back(this->subTreeOf(root));
+        }
+        return res;
+    }
 }

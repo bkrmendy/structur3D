@@ -40,9 +40,6 @@ public:
     void remove(std::shared_ptr<Node> node) final;
     void remove(std::shared_ptr<Edge> edge) final;
 
-    Tree subTreeOf(const std::shared_ptr<Node>& node) const;
-
-    const std::vector<Tree> trees() const final;
     const std::unique_ptr<Graph>& graph() const final;
 
     const std::vector<std::unique_ptr<Mesh>>& meshes() const final;

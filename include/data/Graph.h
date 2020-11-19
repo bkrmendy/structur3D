@@ -14,17 +14,22 @@
 
 #include "Base.h"
 #include "Edge.h"
+#include "Tree.h"
 
 namespace S3D {
 
 struct Graph {
+    const std::vector<std::shared_ptr<Node>> roots() const;
+    Tree subTreeOf(const std::shared_ptr<Node>& node) const;
+
     std::vector<std::shared_ptr<Edge>> edges;
     std::vector<std::shared_ptr<Node>> nodes;
 
     Graph(std::vector<std::shared_ptr<Edge>> edges, std::vector<std::shared_ptr<Node>> nodes)
         : edges{std::move(edges)}, nodes{std::move(nodes)} { }
 
-    const std::vector<std::shared_ptr<Node>> roots() const;
+    const std::vector<Tree> trees() const;
+
 };
 
 }

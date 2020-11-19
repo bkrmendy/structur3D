@@ -14,24 +14,6 @@
 
 namespace S3D {
 
-    Tree DocumentImpl::subTreeOf(const std::shared_ptr<Node>& node) const {
-        std::vector<Tree> subtrees{};
-        for (const auto& edge : this->graph_->edges) {
-            if (edge->from->id() == node->id()) {
-                subtrees.push_back(this->subTreeOf(edge->to));
-            }
-        }
-        return Tree{node, subtrees};
-    }
-
-    const std::vector<Tree> DocumentImpl::trees() const {
-        std::vector<Tree> res{};
-        for (auto& root : this->graph_->roots()) {
-            res.push_back(this->subTreeOf(root));
-        }
-        return res;
-    }
-
     const std::unique_ptr<Graph>& DocumentImpl::graph() const {
         return this->graph_;
     }
@@ -90,8 +72,8 @@ namespace S3D {
     }
 
     void DocumentImpl::regenMesh() {
-        auto gen = std::async(std::launch::async, [this, forest = this->trees()](){
-            for (auto& tree : forest) {
+        auto gen = std::async(std::launch::async, [this, forest = this->graph()->trees()](){
+            for (const auto& tree : forest) {
                 this->meshes_.push_back(Mesh::fromTree(tree));
             }
         });

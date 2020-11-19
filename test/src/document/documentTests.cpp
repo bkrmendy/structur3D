@@ -38,6 +38,10 @@ namespace S3D {
 
 using ::testing::Return;
 
+TEST(DocumentTests, PropertyAccessorsOK) {
+
+}
+
 TEST(DocumentTests, UpdateSphereRadius) {
     FAIL() << "Not implemented";
 }
@@ -63,10 +67,10 @@ TEST(DocumentTests, CreateSphere) {
 }
 
 TEST(DocumentTests, TreesCorrect) {
-
+    FAIL() << "Not implemented";
 }
 
 TEST(DocumentTests, GraphCorrect) {
-
+    FAIL() << "Not implemented";
 }
 

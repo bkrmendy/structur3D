@@ -29,7 +29,6 @@ struct Document {
     virtual void remove(const std::shared_ptr<Node> node) = 0;
     virtual void remove(const std::shared_ptr<Edge> edge) = 0;
 
-    virtual const std::vector<Tree> trees() const = 0;
     virtual const std::unique_ptr<Graph>& graph() const = 0;
     virtual const std::vector<std::unique_ptr<Mesh>>& meshes() const = 0;
     virtual const ID id() const = 0;
