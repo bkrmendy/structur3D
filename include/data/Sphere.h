@@ -23,7 +23,7 @@ public:
     Sphere() = delete;
     Sphere(const ID uid, const Coord& c, RADIUS r) : uid{uid}, coord{c}, radius{r} { }
 
-    virtual ID getID() const { return this->uid; }
+    virtual ID id() const { return this->uid; }
 
     ~Sphere() { }
 };

@@ -14,7 +14,7 @@
 namespace S3D {
 class Node {
 public:
-    virtual ID getID() const  = 0;
+    virtual ID id() const  = 0;
     virtual ~Node(){};
 };
 }

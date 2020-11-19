@@ -34,7 +34,7 @@ TEST(DatabaseImplTests, CreateSphere) {
     EXPECT_EQ(docs.at(0).uid, document);
 
     auto sphere = db.sphere(entity);
-    EXPECT_EQ(sphere->getID(), entity);
+    EXPECT_EQ(sphere->id(), entity);
     EXPECT_FLOAT_EQ(sphere->radius, radius);
     EXPECT_FLOAT_EQ(sphere->coord.x, coord.x);
     EXPECT_FLOAT_EQ(sphere->coord.y, coord.y);
@@ -61,7 +61,7 @@ TEST(DatabaseImplTests, CreateSetOpNode) {
     EXPECT_EQ(docs.at(0).uid, document);
 
     auto node = db.setop(entity);
-    EXPECT_EQ(node->getID(), entity);
+    EXPECT_EQ(node->id(), entity);
     EXPECT_EQ(node->type, setop);
 }
 
@@ -214,7 +214,7 @@ TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
     db.connect(unionNode, s2);
 
     EXPECT_EQ(db.documents().size(), 1);
-    EXPECT_EQ(db.entites(document).size(), 3);
+    EXPECT_EQ(db.entities(document).size(), 3);
 
     EXPECT_TRUE(db.setop(unionNode).has_value());
     EXPECT_TRUE(db.sphere(s1).has_value());

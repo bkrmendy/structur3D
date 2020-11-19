@@ -80,7 +80,7 @@ public:
     void remove(const ID& entity, const ID& document) override;
 
     std::vector<DocumentWithName> documents() override;
-    std::vector<IDWithType> entites(const ID& of_document) override;
+    std::vector<IDWithType> entities(const ID& of_document) override;
     std::vector<ID> edges(const ID& entity) override;
 
     std::optional<Sphere> sphere(const ID& from) override;

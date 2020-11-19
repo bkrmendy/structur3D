@@ -249,7 +249,7 @@ std::vector<DocumentWithName> DatabaseImpl::documents() {
     return names;
 }
 
-std::vector<IDWithType> DatabaseImpl::entites(const ID &of_document) {
+std::vector<IDWithType> DatabaseImpl::entities(const ID &of_document) {
     std::string did = to_string(of_document);
     Schema::Document doc;
     auto lookup =

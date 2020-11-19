@@ -17,6 +17,7 @@ namespace S3D {
 class DocumentImpl : public Document {
     std::shared_ptr<Database> db;
 
+    const ID id_;
     std::unique_ptr<Graph> graph_;
     std::vector<std::unique_ptr<Mesh>> meshes_;
 
@@ -24,6 +25,8 @@ class DocumentImpl : public Document {
 
     void regenMesh();
 public:
+    DocumentImpl(const ID& id, std::shared_ptr<Database> db) : id_{id}, db{db} { }
+
     void create(const std::shared_ptr<Node> node);
     void create(const std::shared_ptr<Edge> edge);
 
@@ -38,6 +41,7 @@ public:
     const std::unique_ptr<Graph>& graph() const;
 
     const std::vector<std::unique_ptr<Mesh>>& meshes() const;
+    const ID id() const;
 
     ~DocumentImpl() {}
 };

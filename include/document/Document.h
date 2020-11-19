@@ -32,6 +32,7 @@ struct Document {
     virtual const std::vector<Tree> trees() const = 0;
     virtual const std::unique_ptr<Graph>& graph() const = 0;
     virtual const std::vector<std::unique_ptr<Mesh>>& meshes() const = 0;
+    virtual const ID id() const = 0;
 
     virtual ~Document() { }
 };

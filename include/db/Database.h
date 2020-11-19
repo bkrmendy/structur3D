@@ -22,8 +22,6 @@
 #include "../data/Coord.h"
 #include "../data/SetOperationType.h"
 
-
-
 namespace S3D {
 
 struct Database {
@@ -48,7 +46,7 @@ struct Database {
 
     // Querying
     virtual std::vector<DocumentWithName> documents() = 0;
-    virtual std::vector<IDWithType> entites(const ID&) = 0;
+    virtual std::vector<IDWithType> entities(const ID&) = 0;
 
     virtual std::optional<Sphere> sphere(const ID& from) = 0;
     virtual std::optional<SetOp> setop(const ID& from) = 0;

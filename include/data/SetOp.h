@@ -25,7 +25,7 @@ public:
     SetOp() = delete;
     SetOp(const ID uid, const SetOperationType type) : uid{uid}, type{type} {}
 
-    ID getID() const override { return this->uid; }
+    ID id() const override { return this->uid; }
 
     ~SetOp() { }
 };

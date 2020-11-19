@@ -23,7 +23,7 @@ public:
 
     Edge(const ID uid, const std::shared_ptr<Node> from, const std::shared_ptr<Node> to)
         : uid{uid}, from{from}, to{to} {
-            assert((from->getID() != to->getID()));
+            assert((from->id() != to->id()));
         }
     ~Edge() {}
 };
