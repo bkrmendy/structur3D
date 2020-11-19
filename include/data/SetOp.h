@@ -13,22 +13,22 @@
 #include <vector>
 
 #include "./Base.h"
+#include "./Node.h"
 #include "./SetOperationType.h"
 
 namespace S3D {
+    class SetOp : public Node {
+    public:
+        const ID uid;
+        const SetOperationType type;
 
-class SetOp: public Node {
-public:
-    const ID uid;
-    const SetOperationType type;
+        SetOp() = delete;
+        SetOp(const ID uid, const SetOperationType type) : uid{uid}, type{type} {}
 
-    SetOp() = delete;
-    SetOp(const ID uid, const SetOperationType type) : uid{uid}, type{type} {}
+        ID id() const final { return this->uid; }
 
-    ID id() const override { return this->uid; }
-
-    ~SetOp() { }
-};
+        ~SetOp() { }
+    };
 }
 
 #endif /* SetOp_h */
