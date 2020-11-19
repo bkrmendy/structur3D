@@ -14,16 +14,17 @@
 namespace S3D {
 
 ViewModelImpl::ViewModelImpl(std::shared_ptr<Database> db)
-    : db{std::move(db)}
+    : db{db}
     , cancellables{}
     , documents_{}
     , message_{} {
-        
         this->currentDocument = std::nullopt;
+        this->documents_ = this->db->documents();
 }
 
-void ViewModelImpl::createDocument() {
-    // TODO: implement
+void ViewModelImpl::createDocument(const std::string& name) {
+    auto makeID = IDFactory();
+    this->documents_.push_back(DocumentWithName{makeID(), name});
 }
 
 const std::vector<DocumentWithName>& ViewModelImpl::documents() const {
