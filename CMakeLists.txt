@@ -9,9 +9,12 @@ file(GLOB sqlpp11_connector_sqlite_src
         src/sqlpp11-connector-sqlite/*
         src/sqlpp11-connector-sqlite/detail/*)
 
+file(GLOB_RECURSE bitsery_src src/bitsery/*.h)
+
 add_library(structur3d_base SHARED
         ${five_src}
         ${sqlpp11_connector_sqlite_src}
+        ${bitsery_src}
 
         src/version.c
 
