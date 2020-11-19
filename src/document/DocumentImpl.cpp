@@ -14,23 +14,23 @@
 
 namespace S3D {
 
-    Tree DocumentImpl::subTreeOf(const std::shared_ptr<Node> node) const {
-    std::vector<Tree> subtrees{};
-    for (const auto& edge : this->graph_->edges) {
-        if (edge->from->id() == node->id()) {
-            subtrees.push_back(this->subTreeOf(edge->to));
+    Tree DocumentImpl::subTreeOf(const std::shared_ptr<Node>& node) const {
+        std::vector<Tree> subtrees{};
+        for (const auto& edge : this->graph_->edges) {
+            if (edge->from->id() == node->id()) {
+                subtrees.push_back(this->subTreeOf(edge->to));
+            }
         }
+        return Tree{node, subtrees};
     }
-    return Tree{node, subtrees};
-}
 
     std::vector<Tree> DocumentImpl::trees() const {
-    std::vector<Tree> res{};
-    for (auto& root : this->graph_->roots()) {
-        res.push_back(this->subTreeOf(root));
+        std::vector<Tree> res{};
+        for (auto& root : this->graph_->roots()) {
+            res.push_back(this->subTreeOf(root));
+        }
+        return res;
     }
-    return res;
-}
 
     const std::unique_ptr<Graph>& DocumentImpl::graph() const {
         return this->graph_;

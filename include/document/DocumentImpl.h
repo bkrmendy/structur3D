@@ -9,6 +9,8 @@
 #ifndef DocumentImpl_hpp
 #define DocumentImpl_hpp
 
+#include <utility>
+
 #include "Document.h"
 #include "db/Database.h"
 
@@ -25,23 +27,23 @@ class DocumentImpl : public Document {
 
     void regenMesh();
 public:
-    DocumentImpl(const ID& id, std::shared_ptr<Database> db) : id_{id}, db{db} { }
+    DocumentImpl(const ID& id, std::shared_ptr<Database> db) : id_{id}, db{std::move(db)} { }
 
-    void create(const std::shared_ptr<Node> node);
-    void create(const std::shared_ptr<Edge> edge);
+    void create(std::shared_ptr<Node> node) final;
+    void create(std::shared_ptr<Edge> edge) final;
 
-    void update(const std::shared_ptr<Node> node);
+    void update(std::shared_ptr<Node> node) final;
 
-    void remove(const std::shared_ptr<Node> node);
-    void remove(const std::shared_ptr<Edge> edge);
+    void remove(std::shared_ptr<Node> node) final;
+    void remove(std::shared_ptr<Edge> edge) final;
 
-    Tree subTreeOf(const std::shared_ptr<Node> node) const;
+    Tree subTreeOf(const std::shared_ptr<Node>& node) const;
 
-    std::vector<Tree> trees() const;
-    const std::unique_ptr<Graph>& graph() const;
+    const std::vector<Tree> trees() const final;
+    const std::unique_ptr<Graph>& graph() const final;
 
-    const std::vector<std::unique_ptr<Mesh>>& meshes() const;
-    ID id() const;
+    const std::vector<std::unique_ptr<Mesh>>& meshes() const final;
+    const ID id() const final;
 
     ~DocumentImpl() {}
 };
