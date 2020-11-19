@@ -21,19 +21,19 @@
 namespace S3D {
 
 struct Document {
-    virtual void create(const std::shared_ptr<Node> node) = 0;
-    virtual void create(const std::shared_ptr<Edge> edge) = 0;
+    virtual void create(std::shared_ptr<Node> node) = 0;
+    virtual void create(std::shared_ptr<Edge> edge) = 0;
 
-    virtual void update(const std::shared_ptr<Node> node) = 0;
+    virtual void update(std::shared_ptr<Node> node) = 0;
 
-    virtual void remove(const std::shared_ptr<Node> node) = 0;
-    virtual void remove(const std::shared_ptr<Edge> edge) = 0;
+    virtual void remove(std::shared_ptr<Node> node) = 0;
+    virtual void remove(std::shared_ptr<Edge> edge) = 0;
 
     virtual const std::unique_ptr<Graph>& graph() const = 0;
-    virtual const std::vector<std::unique_ptr<Mesh>>& meshes() const = 0;
+    virtual const std::unique_ptr<Mesh>& mesh() const = 0;
     virtual const ID id() const = 0;
 
-    virtual ~Document() { }
+    virtual ~Document() = default;
 };
 
 }

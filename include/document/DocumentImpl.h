@@ -11,6 +11,7 @@
 
 #include <utility>
 #include <future>
+#include <mesh/MeshFactory.h>
 
 #include "Document.h"
 #include "db/Database.h"
@@ -22,16 +23,23 @@ class DocumentImpl : public Document {
 
     const ID id_;
     std::unique_ptr<Graph> graph_;
-    std::vector<std::unique_ptr<Mesh>> meshes_;
+    std::unique_ptr<Mesh> mesh_;
+    std::unique_ptr<MeshFactory> factory_;
 
     std::vector<std::future<void>> cancellables;
 
     void regenMesh();
 public:
-    DocumentImpl(const ID& id, std::shared_ptr<Database> db, std::unique_ptr<Graph> graph)
+    DocumentImpl(const ID& id,
+                 std::shared_ptr<Database> db,
+                 std::unique_ptr<Graph> graph,
+                 std::unique_ptr<MeshFactory> factory)
         : id_{id}
         , db{std::move(db)}
-        , graph_{std::move(graph)} { }
+        , graph_{std::move(graph)}
+        , mesh_{{}, {}}
+        , factory_{std::move(factory)}
+        { }
 
     void create(std::shared_ptr<Node> node) final;
     void create(std::shared_ptr<Edge> edge) final;
@@ -43,10 +51,8 @@ public:
 
     const std::unique_ptr<Graph>& graph() const final;
 
-    const std::vector<std::unique_ptr<Mesh>>& meshes() const final;
+    const std::unique_ptr<Mesh>& mesh() const final;
     const ID id() const final;
-
-    ~DocumentImpl() {} ;
 };
 
 }

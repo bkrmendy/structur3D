@@ -64,7 +64,11 @@ void ViewModelImpl::open(const ID &document) {
         }
     }
 
-    this->currentDocument = std::make_unique<DocumentImpl>(document, this->db, std::make_unique<Graph>(edges, nodes));
+    this->currentDocument
+        = std::make_unique<DocumentImpl>(document,
+                                         this->db,
+                                         std::make_unique<Graph>(edges, nodes),
+                                         std::make_unique<MeshFactory>());
 }
 
 const std::optional<std::unique_ptr<Document>>& ViewModelImpl::document() const {

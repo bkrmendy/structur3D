@@ -22,9 +22,7 @@ add_library(structur3d_base SHARED
 
         src/vm/ViewmodelImpl.cpp
 
-        src/mesh/Mesh.cpp
-
-        src/data/Graph.cpp src/base/SetOperationType.cpp)
+        src/data/Graph.cpp src/base/SetOperationType.cpp include/mesh/MeshFactory.h src/mesh/MeshFactory.cpp)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})

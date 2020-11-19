@@ -9,6 +9,7 @@
 #ifndef Mesh_hpp
 #define Mesh_hpp
 
+#include <utility>
 #include <vector>
 #include <memory>
 #include <simd/simd.h>
@@ -17,15 +18,12 @@
 #include "types.h"
 
 namespace S3D {
-class Mesh {
-public:
+struct Mesh {
     const std::vector<S3DVertex> vertices;
     const std::vector<uint32_t> indices;
 
-    static std::unique_ptr<Mesh> fromTree(const Tree& tree);
-
     Mesh(std::vector<S3DVertex> vertices, std::vector<uint32_t> indices)
-        : vertices{vertices}, indices{indices} { }
+        : vertices{std::move(vertices)}, indices{std::move(indices)} { }
 };
 }
 

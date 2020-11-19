@@ -75,9 +75,7 @@ namespace S3D {
 
     void DocumentImpl::regenMesh() {
         auto gen = std::async(std::launch::async, [this, forest = this->graph()->trees()](){
-            for (const auto& tree : forest) {
-                this->meshes_.push_back(Mesh::fromTree(tree));
-            }
+            this->mesh_ = factory_->fromTree(forest);
         });
 
         this->cancellables.push_back(std::move(gen));
@@ -93,8 +91,8 @@ namespace S3D {
         this->regenMesh();
     }
 
-    const std::vector<std::unique_ptr<Mesh>>& DocumentImpl::meshes() const {
-        return this->meshes_;
+    const std::unique_ptr<Mesh>& DocumentImpl::mesh() const {
+        return this->mesh_;
     }
 
     const ID DocumentImpl::id() const {

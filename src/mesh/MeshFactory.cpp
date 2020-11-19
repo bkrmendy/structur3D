@@ -1,23 +1,40 @@
 //
-//  Mesh.cpp
-//  cross-platform-game iOS
-//
-//  Created by Berci on 2020. 11. 06..
-//  Copyright © 2020. Berci. All rights reserved.
+// Created by Berci on 2020. 11. 19..
 //
 
 #include <optional>
+#include <functional>
 
-#include "mesh/Mesh.h"
+#include <data/Sphere.h>
+#include <data/SetOp.h>
 
 #include "libfive.h"
 #include "libfive/render/brep/mesh.hpp"
 #include "libfive/render/brep/settings.hpp"
 
-#include "data/Sphere.h"
-#include "data/SetOp.h"
+#include "mesh/MeshFactory.h"
 
 namespace S3D {
+    std::optional<libfive::Tree> aggregateOf(
+            const std::vector<libfive::Tree>& trees,
+             std::function<libfive::Tree(libfive::Tree, libfive::Tree)> combine
+     ) {
+        if (trees.empty()) {
+            return std::nullopt;
+        }
+
+        if (trees.size() == 1) {
+            return trees.at(0);
+        }
+
+        auto tree = trees.at(0);
+        for (size_t i = 1; i < trees.size(); ++i) {
+            tree = combine(tree, trees.at(i));
+        }
+
+        return tree;
+    }
+
     std::optional<libfive::Tree> l5TreeFromTree(const Tree& tree) {
         if (auto sphere = std::dynamic_pointer_cast<Sphere>(tree.node)) {
             auto x = libfive::Tree::X();
@@ -30,7 +47,8 @@ namespace S3D {
                     + square(z - sphere->coord.z)
                     - sphere->radius
             );
-        } else if (auto setop = std::dynamic_pointer_cast<SetOp>(tree.node)) {
+        }
+        if (auto setop = std::dynamic_pointer_cast<SetOp>(tree.node)) {
             std::vector<libfive::Tree> trees{};
 
             for (const auto& subtree : tree.children) {
@@ -40,34 +58,33 @@ namespace S3D {
                 }
             }
 
-            if (trees.size() < 1) {
-                return std::nullopt;
-            } else if (trees.size() == 1) {
-                return trees.at(0);
+            if (setop->type == SetOperationType::Union) {
+                return aggregateOf(trees, [](auto acc, auto elem) { return min(acc, elem); });
             }
 
-            if (setop->type == SetOperationType::Union) {
-                auto unionMesh = min(trees.at(0), trees.at(1));
-                for (size_t i = 2; i < trees.size(); i++) {
-                    unionMesh = min(trees.at(i), unionMesh);
-                }
-                return unionMesh;
+            if (setop->type == SetOperationType::Subtraction) {
                 // TODO: implement
-                // } else if (setop->type == SetOperationType::Subtraction) {
+                return std::nullopt;
+            }
 
-            } else if (setop->type == SetOperationType::Intersection) {
-                auto intersectionMesh = max(trees.at(0), trees.at(1));
-                for (size_t i = 2; i < trees.size(); i++) {
-                    intersectionMesh = max(trees.at(i), intersectionMesh);
-                }
-                return intersectionMesh;
+            if (setop->type == SetOperationType::Intersection) {
+                return aggregateOf(trees, [](auto acc, auto elem) { return max(acc, elem); });
             }
         }
 
         return std::nullopt;
     }
-    std::unique_ptr<Mesh> Mesh::fromTree(const Tree& tree) {
-        auto shape = l5TreeFromTree(tree);
+
+    std::unique_ptr<Mesh> MeshFactory::fromTree(const std::vector<Tree>& trees) {
+        std::vector<libfive::Tree> forest{};
+        for (const auto& tree : trees) {
+            auto maybeTree = l5TreeFromTree(tree);
+            if (maybeTree.has_value()) {
+                forest.emplace_back(maybeTree.value());
+            }
+        }
+
+        auto shape = aggregateOf(forest, [](auto acc, auto elem) { return min(acc, elem); });
 
         if (!shape.has_value()) { return nullptr; }
 
@@ -83,8 +100,8 @@ namespace S3D {
 
         for (const auto& v : mesh->verts) {
             auto vertex = S3DVertex{
-                .position = { v.x(), v.y(), v.z(), 1.0f },
-                .normal = { 0, 0, 0, 0 }
+                    .position = { v.x(), v.y(), v.z(), 1.0f },
+                    .normal = { 0, 0, 0, 0 }
             };
 
             vertices.push_back(vertex);
@@ -117,7 +134,7 @@ namespace S3D {
             v2->normal += cross4;
         }
 
-        for (auto & vertex : vertices) {
+        for (auto& vertex : vertices) {
             vertex.normal = simd_normalize(vertex.normal);
         }
 
@@ -125,4 +142,3 @@ namespace S3D {
     }
 
 }
-
