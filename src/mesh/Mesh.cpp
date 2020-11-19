@@ -66,63 +66,63 @@ namespace S3D {
 
         return std::nullopt;
     }
-std::unique_ptr<Mesh> Mesh::fromTree(const Tree& tree) {
-    auto shape = l5TreeFromTree(tree);
+    std::unique_ptr<Mesh> Mesh::fromTree(const Tree& tree) {
+        auto shape = l5TreeFromTree(tree);
 
-    if (!shape.has_value()) { return nullptr; }
+        if (!shape.has_value()) { return nullptr; }
 
-    int bound = 5;
-    auto bounds = libfive::Region<3>({-bound, -bound, -bound}, {bound, bound, bound});
-    auto mesh = libfive::Mesh::render(shape.value(), bounds, libfive::BRepSettings());
+        int bound = 5;
+        auto bounds = libfive::Region<3>({-bound, -bound, -bound}, {bound, bound, bound});
+        auto mesh = libfive::Mesh::render(shape.value(), bounds, libfive::BRepSettings());
 
-    std::vector<S3DVertex> vertices;
-    vertices.reserve(mesh->verts.size());
+        std::vector<S3DVertex> vertices;
+        vertices.reserve(mesh->verts.size());
 
-    std::vector<uint32_t> indices;
-    indices.reserve(mesh->branes.size() * 3);
+        std::vector<uint32_t> indices;
+        indices.reserve(mesh->branes.size() * 3);
 
-    for (const auto& v : mesh->verts) {
-        auto vertex = S3DVertex{
-            .position = { v.x(), v.y(), v.z(), 1.0f },
-            .normal = { 0, 0, 0, 0 }
-        };
+        for (const auto& v : mesh->verts) {
+            auto vertex = S3DVertex{
+                .position = { v.x(), v.y(), v.z(), 1.0f },
+                .normal = { 0, 0, 0, 0 }
+            };
 
-        vertices.push_back(vertex);
+            vertices.push_back(vertex);
+        }
+
+        for (const auto& t : mesh->branes) {
+            indices.push_back(t[0]);
+            indices.push_back(t[1]);
+            indices.push_back(t[2]);
+        }
+
+        for (size_t i = 0; i < indices.size(); i += 3) {
+            auto i0 = indices[i];
+            auto i1 = indices[i+1];
+            auto i2 = indices[i+2];
+
+            auto v0 = &vertices[i0];
+            auto v1 = &vertices[i1];
+            auto v2 = &vertices[i2];
+
+            vector_float3 p0 = v0->position.xyz;
+            vector_float3 p1 = v1->position.xyz;
+            vector_float3 p2 = v2->position.xyz;
+
+            vector_float3 cross = simd_cross((p1 - p0), (p2 - p0));
+            vector_float4 cross4 = { cross.x, cross.y, cross.z, 0 };
+
+            v0->normal += cross4;
+            v1->normal += cross4;
+            v2->normal += cross4;
+        }
+
+        for (auto & vertex : vertices) {
+            vertex.normal = simd_normalize(vertex.normal);
+        }
+
+        return std::make_unique<Mesh>(Mesh{vertices, indices});
     }
-
-    for (const auto& t : mesh->branes) {
-        indices.push_back(t[0]);
-        indices.push_back(t[1]);
-        indices.push_back(t[2]);
-    }
-
-    for (size_t i = 0; i < indices.size(); i += 3) {
-        auto i0 = indices[i];
-        auto i1 = indices[i+1];
-        auto i2 = indices[i+2];
-
-        auto v0 = &vertices[i0];
-        auto v1 = &vertices[i1];
-        auto v2 = &vertices[i2];
-
-        vector_float3 p0 = v0->position.xyz;
-        vector_float3 p1 = v1->position.xyz;
-        vector_float3 p2 = v2->position.xyz;
-
-        vector_float3 cross = simd_cross((p1 - p0), (p2 - p0));
-        vector_float4 cross4 = { cross.x, cross.y, cross.z, 0 };
-
-        v0->normal += cross4;
-        v1->normal += cross4;
-        v2->normal += cross4;
-    }
-
-    for (size_t i = 0; i < vertices.size(); i++) {
-        vertices[i].normal = simd_normalize(vertices[i].normal);
-    }
-
-    return std::make_unique<Mesh>(Mesh{vertices, indices});
-}
 
 }
 
