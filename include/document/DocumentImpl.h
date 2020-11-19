@@ -10,6 +10,7 @@
 #define DocumentImpl_hpp
 
 #include <utility>
+#include <future>
 
 #include "Document.h"
 #include "db/Database.h"
