@@ -121,6 +121,22 @@ TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
     FAIL() << "Not implemented";
 }
 
+TEST(DatabaseImplTests, ReadEdges) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, ConnectEdges) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, DisconnectEdges) {
+    FAIL() << "Not implemented";
+}
+
+TEST(DatabaseImplTests, DisconnectNonExistentEdges) {
+    FAIL() << "Not implemented";
+}
+
 TEST(DatabaseImplTests, RadiusCRDTProperty) {
     FAIL() << "Not implemented";
 }
