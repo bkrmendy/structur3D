@@ -8,13 +8,13 @@
 #include "db/DatabaseImpl.h"
 
 TEST(DatabaseImplTests, TotallyNewDB){
-    auto db = S3D::DatabaseImpl::inMemory();
+    auto db = S3D::DatabaseImpl::inMemory(false);
 
     EXPECT_EQ(db.documents().size(), 0);
 }
 
 TEST(DatabaseImplTests, CreateSphere) {
-    auto db = S3D::DatabaseImpl::inMemory();
+    auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
 
@@ -42,7 +42,7 @@ TEST(DatabaseImplTests, CreateSphere) {
 }
 
 TEST(DatabaseImplTests, CreateSetOpNode) {
-    auto db = S3D::DatabaseImpl::inMemory();
+    auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
 
@@ -66,7 +66,7 @@ TEST(DatabaseImplTests, CreateSetOpNode) {
 }
 
 TEST(DatabaseImplTests, RetractSphereNode) {
-    auto db = S3D::DatabaseImpl::inMemory();
+    auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
 
@@ -90,11 +90,30 @@ TEST(DatabaseImplTests, RetractSphereNode) {
 }
 
 TEST(DatabaseImplTests, RetractSetNode) {
-    FAIL() << "Not implemented";
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entity = factory();
+    auto type = S3D::NodeType::SetOperation;
+    auto setop = S3D::SetOperationType::Intersection;
+
+    db.upsert(document, "Test document");
+
+    db.create(entity, type, document);
+    db.upsert(entity, setop);
+
+    db.retract(entity, setop);
+    db.remove(entity, document);
+
+    EXPECT_EQ(db.documents().size(), 0);
+    EXPECT_EQ(db.setop(entity), std::nullopt);
+
 }
 
 TEST(DatabaseImplTests, LookupNonExistentSphere) {
-    auto db = S3D::DatabaseImpl::inMemory();
+    auto db = S3D::DatabaseImpl::inMemory(false);
     auto factory = S3D::IDFactory();
     auto entityFromThinAir = factory();
 
@@ -102,19 +121,61 @@ TEST(DatabaseImplTests, LookupNonExistentSphere) {
 }
 
 TEST(DatabaseImplTests, LookUpNonExistentSetNode) {
-    auto db = S3D::DatabaseImpl::inMemory();
+    auto db = S3D::DatabaseImpl::inMemory(false);
     auto factory = S3D::IDFactory();
     auto entityFromThinAir = factory();
 
     EXPECT_EQ(db.setop(entityFromThinAir), std::nullopt);
 }
 
-TEST(DatabaseImplTests, LookupIncompleteSphere) {
-    FAIL() << "Not implemented";
+TEST(DatabaseImplTests, LookupSphereWithoutCoord) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entity = factory();
+    auto radius = S3D::RADIUS{5};
+
+    db.upsert(document, "Test document");
+
+    db.create(entity, S3D::NodeType::Sphere, document);
+    db.upsert(entity, radius);
+
+    EXPECT_EQ(db.sphere(entity), std::nullopt);
+}
+
+TEST(DatabaseImplTests, LookupSphereWithoutRadius) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entity = factory();
+    auto coord = S3D::Coord{1,2,3};
+
+    db.upsert(document, "Test document");
+
+    db.create(entity, S3D::NodeType::Sphere, document);
+    db.upsert(entity, coord);
+
+    EXPECT_EQ(db.sphere(entity), std::nullopt);
 }
 
 TEST(DatabaseImplTests, LookUpIncompleteSetNode) {
-    FAIL() << "Not implemented";
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entity = factory();
+    auto type = S3D::NodeType::SetOperation;
+
+    db.upsert(document, "Test document");
+
+    db.create(entity, type, document);
+
+    EXPECT_EQ(db.setop(entity), std::nullopt);
 }
 
 TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {

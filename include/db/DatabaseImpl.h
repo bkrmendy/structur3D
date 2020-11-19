@@ -22,11 +22,11 @@ namespace S3D {
 class DatabaseImpl : public Database {
     std::unique_ptr<sql::connection> db;
 public:
-    static DatabaseImpl inMemory() {
+    static DatabaseImpl inMemory(bool debug) {
         sql::connection_config config;
         config.path_to_database = ":memory:";
         config.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-        config.debug = true;
+        config.debug = debug;
 
         return DatabaseImpl{std::make_unique<sql::connection>(config)};
     }
