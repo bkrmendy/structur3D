@@ -35,11 +35,11 @@ public:
 
     ViewModelImpl(std::shared_ptr<Database> db);
 
-    void open(const ID& document);
-    void createDocument();
-    const std::optional<std::unique_ptr<Document>>& document() const;
-    const std::vector<DocumentWithName>& documents() const;
-    const std::string& message() const;
+    void open(const ID& document) final;
+    void createDocument(const std::string& name) final;
+    const std::optional<std::unique_ptr<Document>>& document() const final;
+    const std::vector<DocumentWithName>& documents() const final;
+    const std::string& message() const final;
 };
 
 }

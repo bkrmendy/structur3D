@@ -24,7 +24,7 @@ namespace S3D {
     return Tree{node, subtrees};
 }
 
-    const std::vector<Tree> DocumentImpl::trees() const {
+    std::vector<Tree> DocumentImpl::trees() const {
     std::vector<Tree> res{};
     for (auto& root : this->graph_->roots()) {
         res.push_back(this->subTreeOf(root));
@@ -37,12 +37,12 @@ namespace S3D {
     }
 
     void DocumentImpl::create(const std::shared_ptr<Node> node) {
-        //    this->db->create(node->id(), ...);
-
         if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
+            this->db->create(node->id(), NodeType::Sphere, id_);
             this->db->upsert(sphere->uid, sphere->radius);
             this->db->upsert(sphere->uid, sphere->coord);
         } else if (auto setop = std::dynamic_pointer_cast<SetOp>(node)) {
+            this->db->create(node->id(), NodeType::SetOperation, id_);
             this->db->upsert(setop->uid, setop->type);
         }
 
@@ -51,8 +51,7 @@ namespace S3D {
     }
 
     void DocumentImpl::remove(const std::shared_ptr<Node> node) {
-        //    this->db->remove(node->id(), ...);
-
+        this->db->remove(node->id(), id_);
         if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
             this->db->retract(sphere->uid, sphere->radius);
             this->db->retract(sphere->uid, sphere->coord);
@@ -114,7 +113,7 @@ namespace S3D {
         return this->meshes_;
     }
 
-    const ID DocumentImpl::id() const {
+    ID DocumentImpl::id() const {
         return this->id_;
     }
 

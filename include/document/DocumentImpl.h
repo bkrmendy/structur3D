@@ -37,11 +37,11 @@ public:
 
     Tree subTreeOf(const std::shared_ptr<Node> node) const;
 
-    const std::vector<Tree> trees() const;
+    std::vector<Tree> trees() const;
     const std::unique_ptr<Graph>& graph() const;
 
     const std::vector<std::unique_ptr<Mesh>>& meshes() const;
-    const ID id() const;
+    ID id() const;
 
     ~DocumentImpl() {}
 };
