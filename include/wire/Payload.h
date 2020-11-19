@@ -9,6 +9,7 @@
 
 #include <bitsery/bitsery.h>
 #include <bitsery/ext/std_variant.h>
+#include <bitsery/ext/std_tuple.h>
 
 #include <data/Coord.h>
 #include <data/Base.h>
@@ -20,7 +21,24 @@ namespace S3D {
 
     template <typename S>
     void serialize(S& s, Payload& payload) {
-        
+        s.ext(payload, bitsery::ext::StdVariant {
+           [](S&s, Coord& coord) {
+               s.value4b(coord.x);
+               s.value4b(coord.y);
+               s.value4b(coord.z);
+           },
+           [](S&s, RADIUS& radius) { s.writeBytes<sizeof(RADIUS)>(radius); },
+           [](S&s, SetOperationType& setOp) { s.writeBytes<sizeof(SetOperationType)>(setOp); },
+           [](S&s, std::string& str) {
+               s.container(str, str.size(), [](S&s, char c) { s.value1b(c); });
+           },
+           [](S&s, std::tuple<NodeType, ID>& info) {
+               s.ext(info, bitsery::ext::StdTuple{
+                  [](S&s, NodeType& type) { s.writeBytes<sizeof(NodeType)>(type); }
+                  [](S&s, ID& uid) { s.writeBytes<sizeof(ID)>(uid); }
+               });
+           }
+        });
     }
 }
 
