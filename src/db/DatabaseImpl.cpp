@@ -117,7 +117,7 @@ void DatabaseImpl::connectI(const ID &entity, const ID &entity_to, bool deleted)
     tx.commit();
 }
 
-void DatabaseImpl::createI(const ID &entity, const NodeType type, const ID &document, bool deleted) {
+void DatabaseImpl::createI(const ID &entity, const NodeType& type, const ID &document, bool deleted) {
     std::string eid = to_string(entity);
     std::string doc = to_string(document);
     uint64_t stamp = make_timestamp();
@@ -206,7 +206,7 @@ void DatabaseImpl::disconnect(const ID &entity, const ID &entity_to) {
     connectI(entity, entity_to, true);
 }
 
-void DatabaseImpl::create(const ID &entity, const NodeType type, const ID &document) {
+void DatabaseImpl::create(const ID &entity, const NodeType& type, const ID &document) {
     createI(entity, type, document, false);
 }
 

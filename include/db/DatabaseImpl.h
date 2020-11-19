@@ -59,7 +59,7 @@ public:
 
     void connectI(const ID& entity, const ID& entity_to, bool deleted);
 
-    void createI(const ID& entity, const NodeType type, const ID& document, bool deleted);
+    void createI(const ID& entity, const NodeType& type, const ID& document, bool deleted);
 
     void upsert(const ID& entity, const Coord& coord) override;
     void retract(const ID& entity, const Coord& coord) override;
@@ -76,7 +76,7 @@ public:
     void connect(const ID& entity, const ID& entity_to) override;
     void disconnect(const ID& entity, const ID& entity_to) override;
 
-    void create(const ID& entity, const NodeType type, const ID& document) override;
+    void create(const ID& entity, const NodeType& type, const ID& document) override;
     void remove(const ID& entity, const ID& document) override;
 
     std::vector<DocumentWithName> documents() override;
