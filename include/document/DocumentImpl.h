@@ -45,7 +45,7 @@ public:
     const std::vector<std::unique_ptr<Mesh>>& meshes() const final;
     const ID id() const final;
 
-    ~DocumentImpl() {}
+    ~DocumentImpl() {} ;
 };
 
 }

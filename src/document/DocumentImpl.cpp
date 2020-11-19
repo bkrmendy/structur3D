@@ -24,7 +24,7 @@ namespace S3D {
         return Tree{node, subtrees};
     }
 
-    std::vector<Tree> DocumentImpl::trees() const {
+    const std::vector<Tree> DocumentImpl::trees() const {
         std::vector<Tree> res{};
         for (auto& root : this->graph_->roots()) {
             res.push_back(this->subTreeOf(root));
@@ -113,7 +113,7 @@ namespace S3D {
         return this->meshes_;
     }
 
-    ID DocumentImpl::id() const {
+    const ID DocumentImpl::id() const {
         return this->id_;
     }
 
