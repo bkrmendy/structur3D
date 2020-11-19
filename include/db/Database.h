@@ -41,7 +41,7 @@ struct Database {
     virtual void connect(const ID&, const ID&) = 0;
     virtual void disconnect(const ID&, const ID&) = 0;
 
-    virtual void create(const ID& entity, const NodeType type, const ID& document) = 0;
+    virtual void create(const ID& entity, const NodeType& type, const ID& document) = 0;
     virtual void remove(const ID& entity, const ID& document) = 0;
 
     // Querying
