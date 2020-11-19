@@ -48,13 +48,15 @@ namespace S3D {
         }
 
         this->graph_->nodes.erase(std::remove(this->graph_->nodes.begin(), this->graph_->nodes.end(), node));
-        this->graph_->edges.erase(
-            std::remove_if(
-                this->graph_->edges.begin(),
-                this->graph_->edges.end(),
-                [node](const std::shared_ptr<Edge> edge){ return edge->from == node || edge->to == node; }
-            )
-        );
+        std::vector<std::shared_ptr<S3D::Edge>> new_edges{};
+
+        for (const auto& edge : this->graph_->edges) {
+            if (edge->from != node && edge->to != node) {
+                new_edges.push_back(edge);
+            }
+        }
+
+        this->graph_->edges = new_edges;
 
         this->regenMesh();
     }

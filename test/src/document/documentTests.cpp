@@ -163,11 +163,107 @@ TEST(DocumentTests, CreateSphere) {
 }
 
 TEST(DocumentTests, RemoveSetOp) {
-    FAIL() << "Not implemented";
+    std::shared_ptr<S3D::MockDatabase> db = std::make_shared<S3D::MockDatabase>();
+    auto makeId = S3D::IDFactory();
+    const auto docId = makeId();
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+    auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
+    auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
+
+    std::vector<std::shared_ptr<S3D::Edge>> edges = {edge1, edge2};
+
+    std::vector<std::shared_ptr<S3D::Node>> nodes = {unionNode, sphere1, sphere2};
+
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+
+    EXPECT_CALL(*db, remove(unionNode->id(), docId));
+    EXPECT_CALL(*db, retract(unionNode->id(), S3D::SetOperationType::Union));
+
+    doc.remove(unionNode);
+
+    EXPECT_EQ(doc.graph()->nodes.size(), 2);
+    EXPECT_TRUE(doc.graph()->edges.empty());
 }
 
 TEST(DocumentTests, RemoveSphere) {
-    FAIL() << "Not implemented";
+    std::shared_ptr<S3D::MockDatabase> db = std::make_shared<S3D::MockDatabase>();
+    auto makeId = S3D::IDFactory();
+    const auto docId = makeId();
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+    auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
+    auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
+
+    std::vector<std::shared_ptr<S3D::Edge>> edges = {edge1, edge2};
+
+    std::vector<std::shared_ptr<S3D::Node>> nodes = {unionNode, sphere1, sphere2};
+
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+
+    EXPECT_CALL(*db, remove(sphere1->id(), docId));
+    EXPECT_CALL(*db, retract(sphere1->id(), sphere1->radius));
+    // TODO: expect call coord
+
+    doc.remove(sphere1);
+
+    EXPECT_EQ(doc.graph()->nodes.size(), 2);
+    EXPECT_EQ(doc.graph()->edges.size(), 1);
+    EXPECT_EQ(doc.graph()->edges.at(0)->from->id(), unionNode->id());
+    EXPECT_EQ(doc.graph()->edges.at(0)->to->id(), sphere2->id());
+}
+
+TEST(DocumentTest, CreateEdge) {
+    std::shared_ptr<S3D::MockDatabase> db = std::make_shared<S3D::MockDatabase>();
+    auto makeId = S3D::IDFactory();
+    const auto docId = makeId();
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+
+    std::vector<std::shared_ptr<S3D::Edge>> edges = {};
+
+    std::vector<std::shared_ptr<S3D::Node>> nodes = {unionNode, sphere1, sphere2};
+
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+
+    EXPECT_CALL(*db, connect(unionNode->id(), sphere1->id())).Times(1);
+
+    doc.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1));
+
+    EXPECT_EQ(doc.graph()->nodes.size(), 3);
+    EXPECT_EQ(doc.graph()->edges.size(), 1);
+    EXPECT_EQ(doc.graph()->edges.at(0)->from, unionNode);
+    EXPECT_EQ(doc.graph()->edges.at(0)->to, sphere1);
+}
+
+TEST(DocumentTest, RemoveEdge) {
+    std::shared_ptr<S3D::MockDatabase> db = std::make_shared<S3D::MockDatabase>();
+    auto makeId = S3D::IDFactory();
+    const auto docId = makeId();
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+    auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
+    auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
+
+    std::vector<std::shared_ptr<S3D::Edge>> edges = {edge1, edge2};
+
+    std::vector<std::shared_ptr<S3D::Node>> nodes = {unionNode, sphere1, sphere2};
+
+    auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes));
+
+    EXPECT_CALL(*db, disconnect(unionNode->id(), sphere1->id()));
+
+    doc.remove(edges.at(0));
+
+    EXPECT_EQ(doc.graph()->nodes.size(), 3);
+    EXPECT_EQ(doc.graph()->edges.size(), 1);
+    EXPECT_EQ(doc.graph()->edges.at(0)->from, unionNode);
+    EXPECT_EQ(doc.graph()->edges.at(0)->to, sphere2);
+
 }
 
 
