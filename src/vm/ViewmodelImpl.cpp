@@ -24,7 +24,7 @@ ViewModelImpl::ViewModelImpl(std::shared_ptr<Database> db)
 
 void ViewModelImpl::createDocument(const std::string& name) {
     auto makeID = IDFactory();
-    this->documents_.push_back(DocumentWithName{makeID(), name});
+    this->documents_.emplace_back(DocumentWithName{makeID(), name});
 }
 
 const std::vector<DocumentWithName>& ViewModelImpl::documents() const {
@@ -32,7 +32,39 @@ const std::vector<DocumentWithName>& ViewModelImpl::documents() const {
 }
 
 void ViewModelImpl::open(const ID &document) {
-    // TODO: implement
+    std::vector<std::shared_ptr<Node>> nodes{};
+    std::vector<std::shared_ptr<Edge>> edges{};
+
+    auto entities = this->db->entities(document);
+
+    for (const auto& entity : entities) {
+        if (entity.type == NodeType::Sphere) {
+            auto maybeSphere = this->db->sphere(entity.uid);
+            if (maybeSphere.has_value()) {
+                nodes.push_back(std::make_shared<Sphere>(maybeSphere.value()));
+            }
+        } else if (entity.type == NodeType::SetOperation) {
+            auto maybeSetOp = this->db->setop(entity.uid);
+            if (maybeSetOp.has_value()) {
+                nodes.push_back(std::make_shared<SetOp>(maybeSetOp.value()));
+            }
+        }
+    }
+
+    auto makeID = IDFactory();
+
+    for (const auto& node : nodes) {
+        for (const auto& toPtr : this->db->edges(node->id())) {
+            for (const auto& toNode : nodes) {
+                if (toNode->id() == toPtr) {
+                    const auto id = makeID();
+                    edges.emplace_back(std::make_shared<Edge>(id, node, toNode));
+                }
+            }
+        }
+    }
+
+    this->currentDocument = std::make_unique<DocumentImpl>(document, this->db, std::make_unique<Graph>(edges, nodes));
 }
 
 const std::optional<std::unique_ptr<Document>>& ViewModelImpl::document() const {

@@ -27,7 +27,10 @@ class DocumentImpl : public Document {
 
     void regenMesh();
 public:
-    DocumentImpl(const ID& id, std::shared_ptr<Database> db) : id_{id}, db{std::move(db)} { }
+    DocumentImpl(const ID& id, std::shared_ptr<Database> db, std::unique_ptr<Graph> graph)
+        : id_{id}
+        , db{std::move(db)}
+        , graph_{std::move(graph)} { }
 
     void create(std::shared_ptr<Node> node) final;
     void create(std::shared_ptr<Edge> edge) final;
