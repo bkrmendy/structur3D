@@ -14,11 +14,9 @@
 namespace S3D {
 using Timestamp = std::uint64_t;
 
-Timestamp make_timestamp() {
-    auto stamp = std::chrono::system_clock::now().time_since_epoch();
-    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(stamp);
-    return millis.count();
-}
+struct TimestampFactory {
+    virtual Timestamp timestamp() const;
+};
 }
 
 #endif /* Timestamp_h */

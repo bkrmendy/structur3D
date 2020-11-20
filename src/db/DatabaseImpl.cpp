@@ -23,7 +23,7 @@ namespace S3D {
 
 void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, bool deleted) {
     std::string eid = to_string(entity);
-    uint64_t stamp = make_timestamp();
+    uint64_t stamp = TimestampFactory().timestamp();
 
     auto tx = sqlpp::start_transaction(*db);
     Schema::Coord removeCoord;
@@ -48,7 +48,7 @@ void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, bool deleted) {
 
 void DatabaseImpl::upsertI(const ID &entity, const SetOperationType &type, bool deleted) {
     std::string eid = to_string(entity);
-    uint64_t stamp = make_timestamp();
+    uint64_t stamp = TimestampFactory().timestamp();
 
     auto tx = sqlpp::start_transaction(*db);
     Schema::Setoperationtype removeOp;
@@ -72,7 +72,7 @@ void DatabaseImpl::upsertI(const ID &entity, const SetOperationType &type, bool 
 
 void DatabaseImpl::upsertI(const ID &entity, const std::string &name, bool deleted) {
     std::string eid = to_string(entity);
-    uint64_t stamp = make_timestamp();
+    uint64_t stamp = TimestampFactory().timestamp();
 
     auto tx = sqlpp::start_transaction(*db);
     Schema::Name removeName;
@@ -96,7 +96,7 @@ void DatabaseImpl::upsertI(const ID &entity, const std::string &name, bool delet
 void DatabaseImpl::connectI(const ID &entity, const ID &entity_to, bool deleted) {
     std::string eid = to_string(entity);
     std::string eid_to = to_string(entity_to);
-    uint64_t stamp = make_timestamp();
+    uint64_t stamp = TimestampFactory().timestamp();
 
     auto tx = sqlpp::start_transaction(*db);
     Schema::Edge removeEdge;
@@ -120,7 +120,7 @@ void DatabaseImpl::connectI(const ID &entity, const ID &entity_to, bool deleted)
 void DatabaseImpl::createI(const ID &entity, const NodeType& type, const ID &document, bool deleted) {
     std::string eid = to_string(entity);
     std::string doc = to_string(document);
-    uint64_t stamp = make_timestamp();
+    uint64_t stamp = TimestampFactory().timestamp();
 
     auto tx = sqlpp::start_transaction(*db);
 
@@ -153,7 +153,7 @@ void DatabaseImpl::retract(const ID &entity, const Coord &coord) {
 
 void DatabaseImpl::upsertI(const ID &entity, const RADIUS &radius, bool deleted) {
     std::string eid = to_string(entity);
-    uint64_t stamp = make_timestamp();
+    uint64_t stamp = TimestampFactory().timestamp();
 
     auto tx = sqlpp::start_transaction(*db);
 

@@ -6,6 +6,7 @@
 #define STRUCTUR3D_BASE_MESSAGE_H
 
 #include <bitsery/bitsery.h>
+#include <bitsery/ext/compact_value.h>
 
 #include <data/Base.h>
 #include <data/Timestamp.h>
@@ -21,7 +22,7 @@ namespace S3D {
 
     template <typename S>
     void serialize(S& s, Message& m) {
-        s.writeBytes<sizeof(ID)>(m.uid);
+        s.container(m.uid.data, [](S& s, uint8_t byte) { s.value1b(byte); });
         serialize(s, m.payload);
         s.value8b(m.timestamp);
         s.boolValue(m.deleted);

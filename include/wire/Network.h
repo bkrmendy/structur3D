@@ -13,6 +13,7 @@
 namespace S3D {
     struct Network {
         virtual const std::future<std::vector<Message>> sync(std::vector<Message>&) const = 0;
+        virtual void send(Message& message) const = 0;
         virtual ~Network() = default;
     };
 }

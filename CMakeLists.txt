@@ -25,7 +25,7 @@ add_library(structur3d_base SHARED
 
         src/vm/ViewmodelImpl.cpp
 
-        src/data/Graph.cpp src/base/SetOperationType.cpp include/mesh/MeshFactory.h src/mesh/MeshFactory.cpp include/wire/Message.h include/wire/Network.h include/wire/Payload.h include/utils/Overloaded.h)
+        src/data/Graph.cpp src/base/SetOperationType.cpp include/mesh/MeshFactory.h src/mesh/MeshFactory.cpp include/wire/Message.h include/wire/Network.h include/wire/Payload.h include/utils/Overloaded.h include/wire/NetworkImpl.h src/wire/NetworkImpl.cpp src/data/Timestamp.cpp)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})
@@ -41,9 +41,5 @@ target_include_directories(structur3d_base PUBLIC
 link_directories(/usr/local/lib/)
 target_link_libraries(structur3d_base LINK_PUBLIC sqlite3 ${LIBS})
 
-option(BUILD_TESTS "Build test suite" ON)
-
-if (BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(test)
-endif(BUILD_TESTS)
+enable_testing()
+add_subdirectory(test)

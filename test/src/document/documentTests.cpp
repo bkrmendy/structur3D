@@ -29,7 +29,7 @@ namespace S3D {
         MOCK_METHOD(void, connect, (const ID&, const ID&), (override));
         MOCK_METHOD(void, disconnect, (const ID&, const ID&), (override));
 
-        MOCK_METHOD(void, create, (const ID& entity, const NodeType type, const ID& document), (override));
+        MOCK_METHOD(void, create, (const ID& entity, const NodeType& type, const ID& document), (override));
         MOCK_METHOD(void, remove, (const ID& entity, const ID& document), (override));
 
         MOCK_METHOD(std::vector<DocumentWithName>, documents, (), (override));
