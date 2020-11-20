@@ -39,11 +39,16 @@ public:
         return DatabaseImpl{std::make_unique<sql::connection>(config)};
     }
 
-    static std::vector<std::string> schema();
+    static std::vector<std::string> tables();
+    static std::vector<std::string> indices();
 
     explicit DatabaseImpl(std::unique_ptr<sql::connection> db) : db{std::move(db)} {
-        for (auto& column : DatabaseImpl::schema()) {
+        for (const auto& column : DatabaseImpl::tables()) {
             this->db->execute(column);
+        }
+
+        for (const auto& index : DatabaseImpl::indices()) {
+            this->db->execute(index);
         }
     }
 

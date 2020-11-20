@@ -41,7 +41,7 @@ namespace S3D {
 
     class MockMeshFactory : public MeshFactory {
         std::unique_ptr<Mesh> fromTree(const std::vector<Tree>&) {
-            std::vector<S3DVertex> vertices{};
+            std::vector<Vertex> vertices{};
             std::vector<uint32_t> indices{};
             return std::make_unique<Mesh>(vertices, indices);
         }
