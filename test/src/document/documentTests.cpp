@@ -46,6 +46,10 @@ namespace S3D {
             return std::make_unique<Mesh>(vertices, indices);
         }
     };
+
+    bool operator==(const Coord& a, const Coord& b) {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
+    }
 }
 
 TEST(DocumentTests, PropertyAccessorsOK) {
@@ -101,9 +105,9 @@ TEST(DocumentTests, UpdateSphereCoords) {
     auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
     auto new_coord = S3D::Coord{100, 200, 300};
-    // todo: EXPECT CALL
-
     sphere->coord = new_coord;
+    
+    EXPECT_CALL(*db, upsert(sphere->id(), sphere->coord)).Times(1);
     doc.update(sphere);
 
     auto actualCoord = std::dynamic_pointer_cast<S3D::Sphere>(doc.graph()->nodes.at(0))->coord;
@@ -125,7 +129,6 @@ TEST(DocumentTests, CreateSetOp) {
 
     EXPECT_CALL(*db, create(setop->id(), S3D::NodeType::SetOperation, docId)).Times(1);
     EXPECT_CALL(*db, upsert(setop->id(), setop->type)).Times(1);
-    // todo: EXPECT CALL coord
 
     doc.create(setop);
 
@@ -146,7 +149,7 @@ TEST(DocumentTests, CreateSphere) {
 
     EXPECT_CALL(*db, create(sphere->id(), S3D::NodeType::Sphere, docId)).Times(1);
     EXPECT_CALL(*db, upsert(sphere->id(), sphere->radius)).Times(1);
-    // todo: EXPECT CALL coord
+    EXPECT_CALL(*db, upsert(sphere->id(), sphere->coord)).Times(1);
 
     doc.create(sphere);
 
@@ -197,7 +200,7 @@ TEST(DocumentTests, RemoveSphere) {
 
     EXPECT_CALL(*db, remove(sphere1->id(), docId));
     EXPECT_CALL(*db, retract(sphere1->id(), sphere1->radius));
-    // TODO: expect call coord
+    EXPECT_CALL(*db, retract(sphere1->id(), sphere1->coord)).Times(1);
 
     doc.remove(sphere1);
 
@@ -257,5 +260,3 @@ TEST(DocumentTest, RemoveEdge) {
     EXPECT_EQ(doc.graph()->edges.at(0)->to, sphere2);
 
 }
-
-
