@@ -11,16 +11,18 @@
 
 #include <simd/simd.h>
 
-typedef struct {
-    vector_float4 position;
-    vector_float4 normal;
-} S3DVertex;
+namespace S3D {
+    using Vertex = struct {
+        vector_float4 position;
+        vector_float4 normal;
+    };
 
-typedef struct {
-    matrix_float4x4 modelViewProjectionMatrix;
-    matrix_float4x4 modelViewMatrix;
-    matrix_float3x3 normalMatrix;
-} S3DUniforms;
+    using Uniforms = struct {
+        matrix_float4x4 modelViewProjectionMatrix;
+        matrix_float4x4 modelViewMatrix;
+        matrix_float3x3 normalMatrix;
+    };
+}
 
 
 #endif /* types_h */

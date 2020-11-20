@@ -25,7 +25,6 @@ public:
         : uid{uid}, from{from}, to{to} {
             assert((from->id() != to->id()));
         }
-    ~Edge() {}
 };
 }
 

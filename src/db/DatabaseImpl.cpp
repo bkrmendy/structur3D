@@ -234,7 +234,7 @@ std::vector<DocumentWithName> DatabaseImpl::documents() {
                 .from(name)
                 .where(name.deleted == 0 && name.entity == uid.document)
                 .order_by(name.timestamp.desc())
-                .limit(1u);
+                .limit(1U);
 
         auto mayBeName = this->db->operator()(nameLookup);
 
@@ -242,7 +242,7 @@ std::vector<DocumentWithName> DatabaseImpl::documents() {
             std::stringstream stream{uid.document};
             ID uid_temp;
             stream >> uid_temp;
-            names.push_back(DocumentWithName{uid_temp, mayBeName.front().name});
+            names.emplace_back(uid_temp, mayBeName.front().name);
         }
     }
 
@@ -259,14 +259,14 @@ std::vector<IDWithType> DatabaseImpl::entities(const ID &of_document) {
             .where(doc.deleted == 0 && doc.document == did);
 
     std::vector<IDWithType> res;
-    for (auto& row : db->operator()(lookup)) {
+    for (const auto& row : db->operator()(lookup)) {
         std::stringstream stream{row.entity};
         ID uid;
         stream >> uid;
 
         auto mayBeType = from_integral(row.type);
         if (mayBeType.has_value()) {
-            res.push_back(IDWithType{uid, mayBeType.value() });
+            res.emplace_back(uid, mayBeType.value() );
         }
     }
 
@@ -283,7 +283,7 @@ std::vector<ID> DatabaseImpl::edges(const ID &of_entity) {
             .where(edge.deleted == 0 && edge.entity == eid);
 
     std::vector<ID> res;
-    for (auto& row : db->operator()(lookup)) {
+    for (const auto& row : db->operator()(lookup)) {
         std::stringstream stream{row.entityTo};
         ID uid;
         stream >> uid;
@@ -303,7 +303,7 @@ std::optional<Sphere> DatabaseImpl::sphere(const ID &from) {
                     .from(documentLookup)
                     .where(documentLookup.deleted == 0 && documentLookup.entity == eid)
                     .order_by(documentLookup.timestamp.desc())
-                    .limit(1u);
+                    .limit(1U);
 
     if (this->db->operator()(lookup).empty()) {
         return std::nullopt;
@@ -316,7 +316,7 @@ std::optional<Sphere> DatabaseImpl::sphere(const ID &from) {
             .from(radius)
             .where(radius.deleted == 0 && radius.entity == eid)
             .order_by(radius.timestamp.desc())
-            .limit(1u);
+            .limit(1U);
 
     auto radiusRes = db->operator()(radiusLookup);
 
@@ -331,7 +331,7 @@ std::optional<Sphere> DatabaseImpl::sphere(const ID &from) {
             .from(coord)
             .where(coord.deleted == 0 && coord.entity == eid)
             .order_by(coord.timestamp.desc())
-            .limit(1u);
+            .limit(1U);
 
     auto coordRes = db->operator()(coordLookup);
 

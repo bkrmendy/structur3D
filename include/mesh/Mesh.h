@@ -19,10 +19,10 @@
 
 namespace S3D {
 struct Mesh {
-    const std::vector<S3DVertex> vertices;
+    const std::vector<Vertex> vertices;
     const std::vector<uint32_t> indices;
 
-    Mesh(std::vector<S3DVertex> vertices, std::vector<uint32_t> indices)
+    Mesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices)
         : vertices{std::move(vertices)}, indices{std::move(indices)} { }
 };
 }

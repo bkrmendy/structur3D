@@ -10,6 +10,7 @@
 #define DocumentWithName_h
 
 #include <string>
+#include <utility>
 
 #include "../data/Base.h"
 
@@ -19,7 +20,7 @@ struct DocumentWithName {
     const ID uid;
     std::string name;
 
-    DocumentWithName(const ID& uid, const std::string& name) : uid{uid}, name{name} { }
+    DocumentWithName(const ID& uid, std::string  name) : uid{uid}, name{std::move(name)} { }
 };
 
 }

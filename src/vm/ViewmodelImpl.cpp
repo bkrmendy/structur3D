@@ -7,6 +7,7 @@
 //
 
 #include <algorithm>
+#include <utility>
 
 #include "vm/ViewmodelImpl.h"
 #include "document/DocumentImpl.h"
@@ -14,7 +15,7 @@
 namespace S3D {
 
 ViewModelImpl::ViewModelImpl(std::shared_ptr<Database> db)
-    : db{db}
+    : db{std::move(db)}
     , cancellables{}
     , documents_{}
     , message_{} {
@@ -24,7 +25,7 @@ ViewModelImpl::ViewModelImpl(std::shared_ptr<Database> db)
 
 void ViewModelImpl::createDocument(const std::string& name) {
     auto makeID = IDFactory();
-    this->documents_.emplace_back(DocumentWithName{makeID(), name});
+    this->documents_.emplace_back(makeID(), name);
 }
 
 const std::vector<DocumentWithName>& ViewModelImpl::documents() const {

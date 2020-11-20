@@ -33,7 +33,7 @@ public:
     std::vector<std::future<void>> cancellables;
     std::string message_;
 
-    ViewModelImpl(std::shared_ptr<Database> db);
+    explicit ViewModelImpl(std::shared_ptr<Database> db);
 
     void open(const ID& document) final;
     void createDocument(const std::string& name) final;

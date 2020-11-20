@@ -17,8 +17,7 @@
 #include "./SetOperationType.h"
 
 namespace S3D {
-    class SetOp : public Node {
-    public:
+    struct SetOp : public Node {
         const ID uid;
         const SetOperationType type;
 
@@ -27,7 +26,7 @@ namespace S3D {
 
         ID id() const final { return this->uid; }
 
-        ~SetOp() { }
+        ~SetOp() = default;
     };
 }
 

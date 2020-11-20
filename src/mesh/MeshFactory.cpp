@@ -17,7 +17,7 @@
 namespace S3D {
     std::optional<libfive::Tree> aggregateOf(
             const std::vector<libfive::Tree>& trees,
-             std::function<libfive::Tree(libfive::Tree, libfive::Tree)> combine
+             std::function<libfive::Tree(libfive::Tree, libfive::Tree)>&& combine
      ) {
         if (trees.empty()) {
             return std::nullopt;
@@ -92,14 +92,14 @@ namespace S3D {
         auto bounds = libfive::Region<3>({-bound, -bound, -bound}, {bound, bound, bound});
         auto mesh = libfive::Mesh::render(shape.value(), bounds, libfive::BRepSettings());
 
-        std::vector<S3DVertex> vertices;
+        std::vector<Vertex> vertices;
         vertices.reserve(mesh->verts.size());
 
         std::vector<uint32_t> indices;
         indices.reserve(mesh->branes.size() * 3);
 
         for (const auto& v : mesh->verts) {
-            auto vertex = S3DVertex{
+            auto vertex = Vertex{
                     .position = { v.x(), v.y(), v.z(), 1.0f },
                     .normal = { 0, 0, 0, 0 }
             };
@@ -118,9 +118,9 @@ namespace S3D {
             auto i1 = indices[i+1];
             auto i2 = indices[i+2];
 
-            auto v0 = &vertices[i0];
-            auto v1 = &vertices[i1];
-            auto v2 = &vertices[i2];
+            auto *v0 = &vertices[i0];
+            auto *v1 = &vertices[i1];
+            auto *v2 = &vertices[i2];
 
             vector_float3 p0 = v0->position.xyz;
             vector_float3 p1 = v1->position.xyz;

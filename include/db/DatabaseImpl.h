@@ -68,10 +68,10 @@ public:
     void retract(const ID& entity, const RADIUS& radius) override;
 
     void upsert(const ID& entity, const SetOperationType& type) override;
-    void retract(const ID& entity, const SetOperationType&) override;
+    void retract(const ID& entity, const SetOperationType& type) override;
 
-    void upsert(const ID &, const std::string &name) override;
-    void retract(const ID &, const std::string &name) override;
+    void upsert(const ID& entity, const std::string &name) override;
+    void retract(const ID& entity, const std::string &name) override;
 
     void connect(const ID& entity, const ID& entity_to) override;
     void disconnect(const ID& entity, const ID& entity_to) override;

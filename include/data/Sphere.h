@@ -14,8 +14,7 @@
 #include "./Coord.h"
 
 namespace S3D {
-class Sphere: public Node {
-public:
+struct Sphere: public Node {
     const ID uid;
     Coord coord;
     RADIUS radius;
@@ -25,7 +24,7 @@ public:
 
     virtual ID id() const { return this->uid; }
 
-    ~Sphere() { }
+    ~Sphere() = default;
 };
 }
 

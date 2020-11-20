@@ -12,10 +12,9 @@
 #include "Base.h"
 
 namespace S3D {
-class Node {
-public:
+struct Node {
     virtual ID id() const = 0;
-    virtual ~Node(){};
+    virtual ~Node() = default;
 };
 }
 

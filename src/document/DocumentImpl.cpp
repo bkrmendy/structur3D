@@ -47,7 +47,9 @@ namespace S3D {
             }
         }
 
-        this->graph_->nodes.erase(std::remove(this->graph_->nodes.begin(), this->graph_->nodes.end(), node));
+        this->graph_->nodes.erase(
+                std::remove(this->graph_->nodes.begin(), this->graph_->nodes.end(), node),
+                this->graph_->nodes.end());
         std::vector<std::shared_ptr<S3D::Edge>> new_edges{};
 
         for (const auto& edge : this->graph_->edges) {
@@ -68,7 +70,9 @@ namespace S3D {
     }
 
     void DocumentImpl::remove(const std::shared_ptr<Edge> edge) {
-        this->graph_->edges.erase(std::remove(this->graph_->edges.begin(), this->graph_->edges.end(), edge));
+        this->graph_->edges.erase(
+                std::remove(this->graph_->edges.begin(), this->graph_->edges.end(), edge),
+                this->graph_->edges.end());
         this->db->disconnect(edge->from->id(), edge->to->id());
         this->regenMesh();
     }

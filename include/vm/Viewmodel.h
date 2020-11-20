@@ -28,7 +28,7 @@ public:
     virtual const std::vector<DocumentWithName>& documents() const = 0;
     virtual const std::string& message() const = 0;
 
-    virtual ~ViewModel() { }
+    virtual ~ViewModel() = default;
 };
 
 }
