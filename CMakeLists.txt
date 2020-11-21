@@ -25,7 +25,7 @@ add_library(structur3d_base SHARED
 
         src/vm/ViewmodelImpl.cpp
 
-        src/data/Graph.cpp src/base/SetOperationType.cpp include/mesh/MeshFactory.h src/mesh/MeshFactory.cpp include/wire/Message.h include/wire/Network.h include/wire/Payload.h include/utils/Overloaded.h include/wire/NetworkImpl.h src/wire/NetworkImpl.cpp src/data/Timestamp.cpp)
+        src/data/Graph.cpp src/base/SetOperationType.cpp include/mesh/MeshFactory.h src/mesh/MeshFactory.cpp include/wire/Message.h include/wire/Network.h include/utils/Overloaded.h include/wire/NetworkImpl.h src/data/Timestamp.cpp)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})

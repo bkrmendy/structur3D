@@ -16,8 +16,9 @@ namespace S3D {
     using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 
     class NetworkImpl : public Network {
-        const std::future<std::vector<Message>> sync(std::vector<Message> &) const final;
-        void send(Message &message) const final;
+        void sync(std::vector<Protocol::Message> &) const final;
+        void send(Protocol::Message &message) const final;
+        void receive(Protocol::Message& message) const final;
     };
 }
 
