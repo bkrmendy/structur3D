@@ -19,13 +19,14 @@ namespace S3D {
     }
 
     void DocumentImpl::create(const std::shared_ptr<Node> node) {
+        auto now = TimestampFactory().timestamp();
         if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
-            this->db->create(node->id(), NodeType::Sphere, id_);
-            this->db->upsert(sphere->uid, sphere->radius);
-            this->db->upsert(sphere->uid, sphere->coord);
+            this->db->create(node->id(), NodeType::Sphere, id_, now);
+            this->db->upsert(sphere->uid, sphere->radius, now);
+            this->db->upsert(sphere->uid, sphere->coord, now);
         } else if (auto setop = std::dynamic_pointer_cast<SetOp>(node)) {
-            this->db->create(node->id(), NodeType::SetOperation, id_);
-            this->db->upsert(setop->uid, setop->type);
+            this->db->create(node->id(), NodeType::SetOperation, id_, now);
+            this->db->upsert(setop->uid, setop->type, now);
         }
 
         this->graph_->nodes.push_back(node);
@@ -33,17 +34,18 @@ namespace S3D {
     }
 
     void DocumentImpl::remove(const std::shared_ptr<Node> node) {
-        this->db->remove(node->id(), id_);
+        auto now = TimestampFactory().timestamp();
+        this->db->remove(node->id(), id_, now);
         if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
-            this->db->retract(sphere->uid, sphere->radius);
-            this->db->retract(sphere->uid, sphere->coord);
+            this->db->retract(sphere->uid, sphere->radius, now);
+            this->db->retract(sphere->uid, sphere->coord, now);
         } else if (auto setop = std::dynamic_pointer_cast<SetOp>(node)) {
-            this->db->retract(setop->uid, setop->type);
+            this->db->retract(setop->uid, setop->type, now);
         }
 
         for (const auto& edge : this->graph_->edges) {
             if (edge->to->id() == node->id()) {
-                this->db->disconnect(edge->from->id(), edge->to->id());
+                this->db->disconnect(edge->from->id(), edge->to->id(), now);
             }
         }
 
@@ -64,16 +66,18 @@ namespace S3D {
     }
 
     void DocumentImpl::create(const std::shared_ptr<Edge> edge) {
+        auto now = TimestampFactory().timestamp();
         this->graph_->edges.push_back(edge);
-        this->db->connect(edge->from->id(), edge->to->id());
+        this->db->connect(edge->from->id(), edge->to->id(), now);
         this->regenMesh();
     }
 
     void DocumentImpl::remove(const std::shared_ptr<Edge> edge) {
+        auto now = TimestampFactory().timestamp();
         this->graph_->edges.erase(
                 std::remove(this->graph_->edges.begin(), this->graph_->edges.end(), edge),
                 this->graph_->edges.end());
-        this->db->disconnect(edge->from->id(), edge->to->id());
+        this->db->disconnect(edge->from->id(), edge->to->id(), now);
         this->regenMesh();
     }
 
@@ -86,11 +90,12 @@ namespace S3D {
     }
 
     void DocumentImpl::update(const std::shared_ptr<Node> node) {
+        auto now = TimestampFactory().timestamp();
         if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
-            this->db->upsert(sphere->uid, sphere->radius);
-            this->db->upsert(sphere->uid, sphere->coord);
+            this->db->upsert(sphere->uid, sphere->radius, now);
+            this->db->upsert(sphere->uid, sphere->coord, now);
         } else if (auto setop = std::dynamic_pointer_cast<SetOp>(node)) {
-            this->db->upsert(setop->uid, setop->type);
+            this->db->upsert(setop->uid, setop->type, now);
         }
         this->regenMesh();
     }

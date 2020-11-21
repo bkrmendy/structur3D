@@ -54,35 +54,35 @@ public:
 
     int is_deleted(bool deleted) { return deleted ? 1 : 0; }
 
-    void upsertI(const ID& entity, const Coord& coord, bool deleted);
+    void upsertI(const ID& entity, const Coord& coord, Timestamp timestamp, bool deleted);
 
-    void upsertI(const ID& entity, const RADIUS& radius, bool deleted);
+    void upsertI(const ID& entity, const RADIUS& radius, Timestamp timestamp, bool deleted);
 
-    void upsertI(const ID& entity, const SetOperationType& type, bool deleted);
+    void upsertI(const ID& entity, const SetOperationType& type, Timestamp timestamp, bool deleted);
 
-    void upsertI(const ID& entity, const std::string& name, bool deleted);
+    void upsertI(const ID& entity, const std::string& name, Timestamp timestamp, bool deleted);
 
-    void connectI(const ID& entity, const ID& entity_to, bool deleted);
+    void connectI(const ID& entity, const ID& entity_to, Timestamp timestamp, bool deleted);
 
-    void createI(const ID& entity, const NodeType& type, const ID& document, bool deleted);
+    void createI(const ID& entity, const NodeType& type, const ID& document, Timestamp timestamp, bool deleted);
 
-    void upsert(const ID& entity, const Coord& coord) override;
-    void retract(const ID& entity, const Coord& coord) override;
+    void upsert(const ID& entity, const Coord& coord, Timestamp timestamp) override;
+    void retract(const ID& entity, const Coord& coord, Timestamp timestamp) override;
 
-    void upsert(const ID& entity, const RADIUS& radius) override;
-    void retract(const ID& entity, const RADIUS& radius) override;
+    void upsert(const ID& entity, const RADIUS& radius, Timestamp timestamp) override;
+    void retract(const ID& entity, const RADIUS& radius, Timestamp timestamp) override;
 
-    void upsert(const ID& entity, const SetOperationType& type) override;
-    void retract(const ID& entity, const SetOperationType& type) override;
+    void upsert(const ID& entity, const SetOperationType& type, Timestamp timestamp) override;
+    void retract(const ID& entity, const SetOperationType& type, Timestamp timestamp) override;
 
-    void upsert(const ID& entity, const std::string &name) override;
-    void retract(const ID& entity, const std::string &name) override;
+    void upsert(const ID& entity, const std::string &name, Timestamp timestamp) override;
+    void retract(const ID& entity, const std::string &name, Timestamp timestamp) override;
 
-    void connect(const ID& entity, const ID& entity_to) override;
-    void disconnect(const ID& entity, const ID& entity_to) override;
+    void connect(const ID& entity, const ID& entity_to, Timestamp timestamp) override;
+    void disconnect(const ID& entity, const ID& entity_to, Timestamp timestamp) override;
 
-    void create(const ID& entity, const NodeType& type, const ID& document) override;
-    void remove(const ID& entity, const ID& document) override;
+    void create(const ID& entity, const NodeType& type, const ID& document, Timestamp timestamp) override;
+    void remove(const ID& entity, const ID& document, Timestamp timestamp) override;
 
     std::vector<DocumentWithName> documents() override;
     std::vector<IDWithType> entities(const ID& of_document) override;

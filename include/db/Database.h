@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include <optional>
+#include <data/Timestamp.h>
 
 #include "./IDWithType.h"
 #include "./DocumentWithName.h"
@@ -26,23 +27,23 @@ namespace S3D {
 
 struct Database {
     // Manipulation
-    virtual void upsert(const ID&, const RADIUS&) = 0;
-    virtual void retract(const ID&, const RADIUS&) = 0;
+    virtual void upsert(const ID&, const RADIUS&, Timestamp timestamp) = 0;
+    virtual void retract(const ID&, const RADIUS&, Timestamp timestamp) = 0;
 
-    virtual void upsert(const ID&, const Coord&) = 0;
-    virtual void retract(const ID&, const Coord&) = 0;
+    virtual void upsert(const ID&, const Coord&, Timestamp timestamp) = 0;
+    virtual void retract(const ID&, const Coord&, Timestamp timestamp) = 0;
 
-    virtual void upsert(const ID&, const SetOperationType&) = 0;
-    virtual void retract(const ID&, const SetOperationType&) = 0;
+    virtual void upsert(const ID&, const SetOperationType&, Timestamp timestamp) = 0;
+    virtual void retract(const ID&, const SetOperationType&, Timestamp timestamp) = 0;
 
-    virtual void upsert(const ID&, const std::string& name) = 0;
-    virtual void retract(const ID&, const std::string& name) = 0;
+    virtual void upsert(const ID&, const std::string& name, Timestamp timestamp) = 0;
+    virtual void retract(const ID&, const std::string& name, Timestamp timestamp) = 0;
 
-    virtual void connect(const ID&, const ID&) = 0;
-    virtual void disconnect(const ID&, const ID&) = 0;
+    virtual void connect(const ID&, const ID&, Timestamp timestamp) = 0;
+    virtual void disconnect(const ID&, const ID&, Timestamp timestamp) = 0;
 
-    virtual void create(const ID& entity, const NodeType& type, const ID& document) = 0;
-    virtual void remove(const ID& entity, const ID& document) = 0;
+    virtual void create(const ID& entity, const NodeType& type, const ID& document, Timestamp timestamp) = 0;
+    virtual void remove(const ID& entity, const ID& document, Timestamp timestamp) = 0;
 
     // Querying
     virtual std::vector<DocumentWithName> documents() = 0;

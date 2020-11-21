@@ -21,23 +21,22 @@
 
 namespace S3D {
 
-    void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, bool deleted) {
+    void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
-        uint64_t stamp = TimestampFactory().timestamp();
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Coord removeCoord;
         this->db->operator()(
             remove_from(removeCoord)
                 .where(removeCoord.entity == eid
-                       && removeCoord.timestamp <= stamp
+                       && removeCoord.timestamp <= timestamp
                        || removeCoord.deleted == 1));
 
         Schema::Coord insertCoord;
         this->db->operator()(
             insert_into(insertCoord)
                  .set(insertCoord.deleted = is_deleted(deleted),
-                      insertCoord.timestamp = stamp,
+                      insertCoord.timestamp = timestamp,
                       insertCoord.entity = eid,
                       insertCoord.x = coord.x,
                       insertCoord.y = coord.y,
@@ -46,16 +45,15 @@ namespace S3D {
         tx.commit();
     }
 
-    void DatabaseImpl::upsertI(const ID &entity, const SetOperationType &type, bool deleted) {
+    void DatabaseImpl::upsertI(const ID &entity, const SetOperationType &type, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
-        uint64_t stamp = TimestampFactory().timestamp();
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Setoperationtype removeOp;
         this->db->operator()(
             remove_from(removeOp)
                 .where(removeOp.entity == eid
-                       && removeOp.timestamp <= stamp
+                       && removeOp.timestamp <= timestamp
                        || removeOp.deleted == 1));
 
         Schema::Setoperationtype insertOp;
@@ -63,40 +61,38 @@ namespace S3D {
         this->db->operator()(
             insert_into(insertOp)
                  .set(insertOp.deleted = is_deleted(deleted),
-                      insertOp.timestamp = stamp,
+                      insertOp.timestamp = timestamp,
                       insertOp.entity = eid,
                       insertOp.type = typeAsInteger));
 
         tx.commit();
     }
 
-    void DatabaseImpl::upsertI(const ID &entity, const std::string &name, bool deleted) {
+    void DatabaseImpl::upsertI(const ID &entity, const std::string &name, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
-        uint64_t stamp = TimestampFactory().timestamp();
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Name removeName;
         this->db->operator()(
                 remove_from(removeName)
                         .where(removeName.entity == eid
-                               && removeName.timestamp <= stamp
+                               && removeName.timestamp <= timestamp
                                || removeName.deleted == 1));
 
         Schema::Name insertName;
         this->db->operator()(
                 insert_into(insertName)
                     .set(insertName.entity = eid,
-                         insertName.timestamp = stamp,
+                         insertName.timestamp = timestamp,
                          insertName.deleted = is_deleted(deleted),
                          insertName.name = name));
 
         tx.commit();
     }
 
-    void DatabaseImpl::connectI(const ID &entity, const ID &entity_to, bool deleted) {
+    void DatabaseImpl::connectI(const ID &entity, const ID &entity_to, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
         std::string eid_to = to_string(entity_to);
-        uint64_t stamp = TimestampFactory().timestamp();
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Edge removeEdge;
@@ -104,6 +100,7 @@ namespace S3D {
             remove_from(removeEdge)
                 .where(removeEdge.entity == eid
                        && removeEdge.entityTo == eid_to
+                       && removeEdge.timestamp < timestamp
                        || removeEdge.deleted == 1));
 
         Schema::Edge insertEdge;
@@ -111,16 +108,15 @@ namespace S3D {
             insert_into(insertEdge)
                 .set(insertEdge.entity = eid,
                      insertEdge.entityTo = eid_to,
-                     insertEdge.timestamp = stamp,
+                     insertEdge.timestamp = timestamp,
                      insertEdge.deleted = is_deleted(deleted)));
 
         tx.commit();
     }
 
-    void DatabaseImpl::createI(const ID &entity, const NodeType& type, const ID &document, bool deleted) {
+    void DatabaseImpl::createI(const ID &entity, const NodeType& type, const ID &document, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
         std::string doc = to_string(document);
-        uint64_t stamp = TimestampFactory().timestamp();
 
         auto tx = sqlpp::start_transaction(*db);
 
@@ -129,6 +125,7 @@ namespace S3D {
             remove_from(removeDoc)
                 .where(removeDoc.entity == eid
                        && removeDoc.document == doc
+                       && removeDoc.timestamp < timestamp
                        || removeDoc.deleted == 1));
 
         Schema::Document updateDoc;
@@ -137,23 +134,22 @@ namespace S3D {
                 .set(updateDoc.entity = eid,
                      updateDoc.type = to_integral(type),
                      updateDoc.document = doc,
-                     updateDoc.timestamp = stamp,
+                     updateDoc.timestamp = timestamp,
                      updateDoc.deleted = is_deleted(deleted)));
 
         tx.commit();
     }
 
-    void DatabaseImpl::upsert(const ID &entity, const Coord &coord) {
-        this->upsertI(entity, coord, false);
+    void DatabaseImpl::upsert(const ID &entity, const Coord &coord, Timestamp timestamp) {
+        this->upsertI(entity, coord, timestamp, false);
     }
 
-    void DatabaseImpl::retract(const ID &entity, const Coord &coord) {
-        this->upsertI(entity, coord, false);
+    void DatabaseImpl::retract(const ID &entity, const Coord &coord, Timestamp timestamp) {
+        this->upsertI(entity, coord, timestamp, false);
     }
 
-    void DatabaseImpl::upsertI(const ID &entity, const RADIUS &radius, bool deleted) {
+    void DatabaseImpl::upsertI(const ID &entity, const RADIUS &radius, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
-        uint64_t stamp = TimestampFactory().timestamp();
 
         auto tx = sqlpp::start_transaction(*db);
 
@@ -161,57 +157,57 @@ namespace S3D {
         this->db->operator()(
             remove_from(removeRadius)
                 .where(removeRadius.entity == eid
-                       && removeRadius.timestamp <= stamp));
+                       && removeRadius.timestamp <= timestamp));
 
         Schema::Radius insertRadius;
         this->db->operator()(
             insert_into(insertRadius)
                 .set(insertRadius.deleted = is_deleted(deleted),
-                     insertRadius.timestamp = stamp,
+                     insertRadius.timestamp = timestamp,
                      insertRadius.entity = eid,
                      insertRadius.magnitude = radius));
 
         tx.commit();
     }
 
-    void DatabaseImpl::upsert(const ID &entity, const RADIUS &radius) {
-        upsertI(entity, radius, false);
+    void DatabaseImpl::upsert(const ID &entity, const RADIUS &radius, Timestamp timestamp) {
+        upsertI(entity, radius, timestamp, false);
     }
 
-    void DatabaseImpl::retract(const ID &entity, const RADIUS &radius) {
-        upsertI(entity, radius, false);
+    void DatabaseImpl::retract(const ID &entity, const RADIUS &radius, Timestamp timestamp) {
+        upsertI(entity, radius, timestamp, false);
     }
 
-    void DatabaseImpl::upsert(const ID &entity, const SetOperationType &type) {
-        upsertI(entity, type, false);
+    void DatabaseImpl::upsert(const ID &entity, const SetOperationType &type, Timestamp timestamp) {
+        upsertI(entity, type, timestamp, false);
     }
 
-    void DatabaseImpl::upsert(const ID &eid, const std::string &name) {
-        upsertI(eid, name, false);
+    void DatabaseImpl::upsert(const ID &eid, const std::string &name, Timestamp timestamp) {
+        upsertI(eid, name, timestamp, false);
     }
 
-    void DatabaseImpl::retract(const ID &eid, const std::string &name) {
-        upsertI(eid, name, true);
+    void DatabaseImpl::retract(const ID &eid, const std::string &name, Timestamp timestamp) {
+        upsertI(eid, name, timestamp, true);
     }
 
-    void DatabaseImpl::retract(const ID &entity, const SetOperationType &type) {
-        upsertI(entity, type, true);
+    void DatabaseImpl::retract(const ID &entity, const SetOperationType &type, Timestamp timestamp) {
+        upsertI(entity, type, timestamp, true);
     }
 
-    void DatabaseImpl::connect(const ID &entity, const ID &entity_to) {
-        connectI(entity, entity_to, false);
+    void DatabaseImpl::connect(const ID &entity, const ID &entity_to, Timestamp timestamp) {
+        connectI(entity, entity_to, timestamp, false);
     }
 
-    void DatabaseImpl::disconnect(const ID &entity, const ID &entity_to) {
-        connectI(entity, entity_to, true);
+    void DatabaseImpl::disconnect(const ID &entity, const ID &entity_to, Timestamp timestamp) {
+        connectI(entity, entity_to, timestamp, true);
     }
 
-    void DatabaseImpl::create(const ID &entity, const NodeType& type, const ID &document) {
-        createI(entity, type, document, false);
+    void DatabaseImpl::create(const ID &entity, const NodeType& type, const ID &document, Timestamp timestamp) {
+        createI(entity, type, document, timestamp, false);
     }
 
-    void DatabaseImpl::remove(const ID &entity, const ID &document) {
-        createI(entity, NodeType::Sphere, document, true);
+    void DatabaseImpl::remove(const ID &entity, const ID &document, Timestamp timestamp) {
+        createI(entity, NodeType::Sphere, document, timestamp, true);
     }
 
     std::vector<DocumentWithName> DatabaseImpl::documents() {

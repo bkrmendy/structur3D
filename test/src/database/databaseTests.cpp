@@ -23,11 +23,13 @@ TEST(DatabaseImplTests, CreateSphere) {
     S3D::Coord coord = S3D::Coord{1,2,3};
     auto radius = S3D::RADIUS{5};
 
-    db.upsert(document, "Test document");
+    auto now = S3D::TimestampFactory().timestamp();
 
-    db.create(entity, S3D::NodeType::Sphere, document);
-    db.upsert(entity, coord);
-    db.upsert(entity, radius);
+    db.upsert(document, "Test document", now);
+
+    db.create(entity, S3D::NodeType::Sphere, document, now);
+    db.upsert(entity, coord, now);
+    db.upsert(entity, radius, now);
 
     EXPECT_EQ(db.documents().size(), 1);
     auto docs = db.documents();
@@ -45,16 +47,17 @@ TEST(DatabaseImplTests, CreateSetOpNode) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     S3D::ID document = factory();
     S3D::ID entity = factory();
     auto type = S3D::NodeType::SetOperation;
     auto setop = S3D::SetOperationType::Intersection;
 
-    db.upsert(document, "Test document");
+    db.upsert(document, "Test document", now);
 
-    db.create(entity, type, document);
-    db.upsert(entity, setop);
+    db.create(entity, type, document, now);
+    db.upsert(entity, setop, now);
 
     EXPECT_EQ(db.documents().size(), 1);
     auto docs = db.documents();
@@ -69,21 +72,22 @@ TEST(DatabaseImplTests, RetractSphereNode) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     S3D::ID document = factory();
     S3D::ID entity = factory();
     S3D::Coord coord = S3D::Coord{1,2,3};
     auto radius = S3D::RADIUS{5};
 
-    db.upsert(document, "Test document");
+    db.upsert(document, "Test document", now);
 
-    db.create(entity, S3D::NodeType::Sphere, document);
-    db.upsert(entity, coord);
-    db.upsert(entity, radius);
+    db.create(entity, S3D::NodeType::Sphere, document, now);
+    db.upsert(entity, coord, now);
+    db.upsert(entity, radius, now);
 
-    db.retract(entity, coord);
-    db.retract(entity, radius);
-    db.remove(entity, document);
+    db.retract(entity, coord, now + 1);
+    db.retract(entity, radius, now + 1);
+    db.remove(entity, document, now + 1);
 
     EXPECT_TRUE(db.documents().empty());
     EXPECT_EQ(db.sphere(entity), std::nullopt);
@@ -93,19 +97,20 @@ TEST(DatabaseImplTests, RetractSetNode) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     S3D::ID document = factory();
     S3D::ID entity = factory();
     auto type = S3D::NodeType::SetOperation;
     auto setop = S3D::SetOperationType::Intersection;
 
-    db.upsert(document, "Test document");
+    db.upsert(document, "Test document", now);
 
-    db.create(entity, type, document);
-    db.upsert(entity, setop);
+    db.create(entity, type, document, now);
+    db.upsert(entity, setop, now);
 
-    db.retract(entity, setop);
-    db.remove(entity, document);
+    db.retract(entity, setop, now + 1);
+    db.remove(entity, document, now + 1);
 
     EXPECT_TRUE(db.documents().empty());
     EXPECT_EQ(db.setop(entity), std::nullopt);
@@ -131,15 +136,16 @@ TEST(DatabaseImplTests, LookupSphereWithoutCoord) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     S3D::ID document = factory();
     S3D::ID entity = factory();
     auto radius = S3D::RADIUS{5};
 
-    db.upsert(document, "Test document");
+    db.upsert(document, "Test document", now);
 
-    db.create(entity, S3D::NodeType::Sphere, document);
-    db.upsert(entity, radius);
+    db.create(entity, S3D::NodeType::Sphere, document, now);
+    db.upsert(entity, radius, now);
 
     EXPECT_EQ(db.sphere(entity), std::nullopt);
 }
@@ -147,16 +153,17 @@ TEST(DatabaseImplTests, LookupSphereWithoutCoord) {
 TEST(DatabaseImplTests, LookupSphereWithoutRadius) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
-    S3D::IDFactory factory = S3D::IDFactory();
+    auto factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     S3D::ID document = factory();
     S3D::ID entity = factory();
     auto coord = S3D::Coord{1,2,3};
 
-    db.upsert(document, "Test document");
+    db.upsert(document, "Test document", now);
 
-    db.create(entity, S3D::NodeType::Sphere, document);
-    db.upsert(entity, coord);
+    db.create(entity, S3D::NodeType::Sphere, document, now);
+    db.upsert(entity, coord, now);
 
     EXPECT_EQ(db.sphere(entity), std::nullopt);
 }
@@ -165,14 +172,15 @@ TEST(DatabaseImplTests, LookUpIncompleteSetNode) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     S3D::ID document = factory();
     S3D::ID entity = factory();
     auto type = S3D::NodeType::SetOperation;
 
-    db.upsert(document, "Test document");
+    db.upsert(document, "Test document", now);
 
-    db.create(entity, type, document);
+    db.create(entity, type, document, now);
 
     EXPECT_EQ(db.setop(entity), std::nullopt);
 }
@@ -180,11 +188,12 @@ TEST(DatabaseImplTests, LookUpIncompleteSetNode) {
 TEST(DatabaseImplTests, LookupDocumentWithoutName) {
     auto db = S3D::DatabaseImpl::inMemory(false);
     auto makeID = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     auto document = makeID();
     auto dummy = makeID();
 
-    db.create(dummy, S3D::NodeType::Sphere, document);
+    db.create(dummy, S3D::NodeType::Sphere, document, now);
 
     EXPECT_TRUE(db.documents().empty());
 }
@@ -192,26 +201,27 @@ TEST(DatabaseImplTests, LookupDocumentWithoutName) {
 TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
     auto db = S3D::DatabaseImpl::inMemory(false);
     auto makeID = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     auto document = makeID();
-    db.upsert(document, "Test Document");
+    db.upsert(document, "Test Document", now);
 
     auto unionNode = makeID();
-    db.create(unionNode, S3D::NodeType::SetOperation, document);
-    db.upsert(unionNode, S3D::SetOperationType::Union);
+    db.create(unionNode, S3D::NodeType::SetOperation, document, now);
+    db.upsert(unionNode, S3D::SetOperationType::Union, now);
 
     auto s1 = makeID();
-    db.create(s1, S3D::NodeType::Sphere, document);
-    db.upsert(s1, S3D::Coord{-1, -2, -3});
-    db.upsert(s1, S3D::RADIUS{2});
+    db.create(s1, S3D::NodeType::Sphere, document, now);
+    db.upsert(s1, S3D::Coord{-1, -2, -3}, now);
+    db.upsert(s1, S3D::RADIUS{2}, now);
 
     auto s2 = makeID();
-    db.create(s2, S3D::NodeType::Sphere, document);
-    db.upsert(s2, S3D::Coord{1, 2, 3});
-    db.upsert(s2, S3D::RADIUS{3});
+    db.create(s2, S3D::NodeType::Sphere, document, now);
+    db.upsert(s2, S3D::Coord{1, 2, 3}, now);
+    db.upsert(s2, S3D::RADIUS{3}, now);
 
-    db.connect(unionNode, s1);
-    db.connect(unionNode, s2);
+    db.connect(unionNode, s1, now);
+    db.connect(unionNode, s2, now);
 
     EXPECT_EQ(db.documents().size(), 1);
     EXPECT_EQ(db.entities(document).size(), 3);
@@ -244,11 +254,12 @@ TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
 TEST(DatabaseImplTests, ReadEdges) {
     auto db = S3D::DatabaseImpl::inMemory(false);
     S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     auto e1 = factory();
     auto e2 = factory();
 
-    db.connect(e1, e2);
+    db.connect(e1, e2, now);
 
     auto edges_of_e1 = db.edges(e1);
     auto edges_of_e2 = db.edges(e2);
@@ -261,17 +272,18 @@ TEST(DatabaseImplTests, ReadEdges) {
 TEST(DatabaseImplTests, DisconnectEdges) {
     auto db = S3D::DatabaseImpl::inMemory(false);
     S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     auto e1 = factory();
     auto e2 = factory();
     auto e3 = factory();
 
-    db.connect(e1, e2);
-    db.connect(e1, e3);
+    db.connect(e1, e2, now);
+    db.connect(e1, e3, now);
 
     EXPECT_EQ(db.edges(e1).size(), 2);
 
-    db.disconnect(e1, e2);
+    db.disconnect(e1, e2, now + 1);
 
     EXPECT_EQ(db.edges(e1).size(), 1);
 
@@ -281,19 +293,20 @@ TEST(DatabaseImplTests, DisconnectEdges) {
 TEST(DatabaseImplTests, DisconnectNonExistentEdges) {
     auto db = S3D::DatabaseImpl::inMemory(false);
     S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
 
     auto e1 = factory();
     auto e2 = factory();
     auto e3 = factory();
 
-    db.connect(e1, e2);
-    db.connect(e1, e3);
+    db.connect(e1, e2, now);
+    db.connect(e1, e3, now);
 
     EXPECT_EQ(db.edges(e1).size(), 2);
     EXPECT_TRUE(db.edges(e2).empty());
     EXPECT_TRUE(db.edges(e3).empty());
 
-    db.disconnect(e2, e3);
+    db.disconnect(e2, e3, now + 1);
 
     EXPECT_EQ(db.edges(e1).size(), 2);
     EXPECT_TRUE(db.edges(e2).empty());
