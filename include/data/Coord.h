@@ -15,7 +15,7 @@ namespace S3D {
         float y;
         float z;
 
-        Coord() = delete;
+        Coord() : x{0}, y{0}, z{0} {};
 
         Coord(float x, float y, float z) : x{x}, y{y}, z{z} {}
     };
