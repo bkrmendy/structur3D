@@ -41,10 +41,10 @@ public:
     /*
      * Interactor interface
      */
-    void create(std::shared_ptr<Node>, const ID& document) final;
+    void create(std::shared_ptr<Node> node, const ID& document) final;
     void connect(const ID& from, const ID& to) final;
-    void update(std::shared_ptr <Node> node) final;
-    void remove(std::shared_ptr<Node>, const ID& document) final;
+    void update(const ID& name, const Attribute& attribute) final;
+    void remove(std::shared_ptr<Node> node, const ID& document) final;
     void disconnect(const ID& from, const ID& to) final;
 
     /*
