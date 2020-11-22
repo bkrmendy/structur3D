@@ -116,8 +116,8 @@ const std::string& ViewModelImpl::message() const {
         if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
             this->db_->retract(sphere->uid, sphere->radius, now);
             this->db_->retract(sphere->uid, sphere->coord, now);
-        } else if (auto setop = std::dynamic_pointer_cast<SetOp>(node)) {
-            this->db_->retract(setop->uid, setop->type, now);
+        } else if (auto setOp = std::dynamic_pointer_cast<SetOp>(node)) {
+            this->db_->retract(setOp->uid, setOp->type, now);
         }
     }
 
@@ -125,23 +125,5 @@ const std::string& ViewModelImpl::message() const {
         auto now = TimestampFactory().timestamp();
         this->db_->disconnect(from, to, now);
     }
-
-//auto gen = IDFactory{};
-//std::shared_ptr<Node> sphere1 = std::make_unique<Sphere>(Sphere{gen(), Coord{2, 0, 0}, 1});
-//std::shared_ptr<Node> sphere2 = std::make_unique<Sphere>(Sphere{gen(), Coord{-2, 0, 0}, 1});
-//std::shared_ptr<Node> sphere3 = std::make_unique<Sphere>(Sphere{gen(), Coord{0, 2, 0}, 1});
-//std::shared_ptr<Node> unionOp = std::make_unique<SetOp>(SetOp{gen(), SetOperationType::Union});
-//
-//std::shared_ptr<Edge> us3 = std::make_shared<Edge>(Edge{ gen(), unionOp, sphere3 });
-//std::shared_ptr<Edge> us1 = std::make_shared<Edge>(Edge{ gen(), unionOp, sphere1 });
-//std::shared_ptr<Edge> us2 = std::make_shared<Edge>(Edge{ gen(), unionOp, sphere2 });
-//
-//this->graph_
-//    = std::make_unique<Graph>(Graph{{ us1, us2, us3 }, { sphere1, sphere2, unionOp, sphere3 }});
-//
-//for (auto& tree : this->trees()) {
-//    this->meshes_.push_back(Mesh::fromTree(tree));
-//}
-
 }
 
