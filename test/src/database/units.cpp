@@ -70,6 +70,24 @@ TEST(DatabaseImplTests, CreateSetOpNode) {
     EXPECT_EQ(node->type, setop);
 }
 
+TEST(DatabaseImplTests, UpdateDocumentName) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
+
+    S3D::ID document = factory();
+    S3D::ID dummy = factory();
+    db.create(dummy, S3D::NodeType::Sphere, document, now);
+    db.upsert(document, "Test name", now);
+
+    auto new_name = "Test name 2";
+
+    db.upsert(document, new_name, now + 3);
+
+    EXPECT_EQ(db.documents().at(0).name, new_name);
+}
+
 TEST(DatabaseImplTests, RetractSphereNode) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
