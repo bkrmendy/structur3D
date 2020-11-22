@@ -10,4 +10,9 @@ namespace S3D {
                     + coord.y * coord.y
                     + coord.z * coord.z);
     }
+
+    std::ostream& operator<<(std::ostream& os, const Coord& coord) {
+        return os << "[Coord x: " << coord.x << " y: " << coord.y << " z: " << coord.z << "]";
+    }
+
 }

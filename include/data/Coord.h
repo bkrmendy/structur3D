@@ -9,6 +9,8 @@
 #ifndef Coord_h
 #define Coord_h
 
+#include <iostream>
+
 namespace S3D {
     struct Coord {
         float x;
@@ -21,6 +23,8 @@ namespace S3D {
     };
 
     float distance_from_origin(const Coord&);
+
+    std::ostream& operator<<(std::ostream& os, const Coord& coord);
 }
 
 

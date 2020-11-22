@@ -7,7 +7,6 @@
 //
 
 #include <string>
-#include <iostream>
 
 #include "db/DatabaseImpl.h"
 #include "generated/tables.h"
@@ -16,7 +15,6 @@
 
 #include "boost/uuid/uuid_io.hpp"
 
-#include "sqlpp11/sqlpp11.h"
 #include "sqlpp11/remove.h"
 #include "sqlpp11/insert.h"
 #include "sqlpp11/transaction.h"
@@ -330,11 +328,10 @@ namespace S3D {
         auto maxTimestamp = radiusRes.front().timestamp;
         float maxRadius = radiusRes.front().magnitude;
         for (const auto& radius : radiusRes) {
-            if (radius.timestamp == maxTimestamp) {
-                if (radius.magnitude > maxRadius) {
-                    maxRadius = radius.magnitude;
-                    maxTimestamp = radius.timestamp;
-                }
+            if (radius.timestamp == maxTimestamp
+                && radius.magnitude > maxRadius) {
+                maxRadius = radius.magnitude;
+                maxTimestamp = radius.timestamp;
             } else if (radius.timestamp > maxTimestamp) {
                 maxRadius = radius.magnitude;
                 maxTimestamp = radius.timestamp;
@@ -352,15 +349,20 @@ namespace S3D {
             return std::nullopt;
         }
 
-        Coord farthestCoord = Coord(coordRes.front().x, coordRes.front().y, coordRes.front().z);
+        Coord farthestCoord = Coord{(float)coordRes.front().x,
+                                    (float)coordRes.front().y,
+                                    (float)coordRes.front().z};
+
         auto maxCoordTimestamp = coordRes.front().timestamp;
         for (const auto& row : coordRes) {
-            auto coord = Coord(row.x, row.y, row.z);
-            if (maxCoordTimestamp == row.timestamp) {
-                if (distance_from_origin(coord) > distance_from_origin(farthestCoord)) {
-                    farthestCoord = coord;
-                    maxCoordTimestamp = row.timestamp;
-                }
+            auto coord = Coord{(float)row.x,
+                               (float)row.y,
+                               (float)row.z};
+
+            if (maxCoordTimestamp == row.timestamp
+                && distance_from_origin(coord) > distance_from_origin(farthestCoord)) {
+                farthestCoord = coord;
+                maxCoordTimestamp = row.timestamp;
             } else if (row.timestamp > maxCoordTimestamp) {
                 farthestCoord = coord;
                 maxCoordTimestamp = row.timestamp;
@@ -468,6 +470,5 @@ namespace S3D {
 
         return { edges, radius, coord, setOpType, document, name };
     }
-
 }
 
