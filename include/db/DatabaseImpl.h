@@ -56,7 +56,7 @@ public:
 
     void upsertI(const ID& entity, const Coord& coord, Timestamp timestamp, bool deleted);
 
-    void upsertI(const ID& entity, const RADIUS& radius, Timestamp timestamp, bool deleted);
+    void upsertI(const ID& entity, const Radius& radius, Timestamp timestamp, bool deleted);
 
     void upsertI(const ID& entity, const SetOperationType& type, Timestamp timestamp, bool deleted);
 
@@ -69,8 +69,8 @@ public:
     void upsert(const ID& entity, const Coord& coord, Timestamp timestamp) override;
     void retract(const ID& entity, const Coord& coord, Timestamp timestamp) override;
 
-    void upsert(const ID& entity, const RADIUS& radius, Timestamp timestamp) override;
-    void retract(const ID& entity, const RADIUS& radius, Timestamp timestamp) override;
+    void upsert(const ID& entity, const Radius& radius, Timestamp timestamp) override;
+    void retract(const ID& entity, const Radius& radius, Timestamp timestamp) override;
 
     void upsert(const ID& entity, const SetOperationType& type, Timestamp timestamp) override;
     void retract(const ID& entity, const SetOperationType& type, Timestamp timestamp) override;

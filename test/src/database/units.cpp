@@ -23,7 +23,7 @@ TEST(DatabaseImplTests, CreateSphere) {
     S3D::ID document = factory();
     S3D::ID entity = factory();
     S3D::Coord coord = S3D::Coord{1,2,3};
-    auto radius = S3D::RADIUS{5};
+    auto radius = S3D::Radius{5};
 
     auto now = S3D::TimestampFactory().timestamp();
 
@@ -79,7 +79,7 @@ TEST(DatabaseImplTests, RetractSphereNode) {
     S3D::ID document = factory();
     S3D::ID entity = factory();
     S3D::Coord coord = S3D::Coord{1,2,3};
-    auto radius = S3D::RADIUS{5};
+    auto radius = S3D::Radius{5};
 
     db.upsert(document, "Test document", now);
 
@@ -142,7 +142,7 @@ TEST(DatabaseImplTests, LookupSphereWithoutCoord) {
 
     S3D::ID document = factory();
     S3D::ID entity = factory();
-    auto radius = S3D::RADIUS{5};
+    auto radius = S3D::Radius{5};
 
     db.upsert(document, "Test document", now);
 
@@ -215,12 +215,12 @@ TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
     auto s1 = makeID();
     db.create(s1, S3D::NodeType::Sphere, document, now);
     db.upsert(s1, S3D::Coord{-1, -2, -3}, now);
-    db.upsert(s1, S3D::RADIUS{2}, now);
+    db.upsert(s1, S3D::Radius{2}, now);
 
     auto s2 = makeID();
     db.create(s2, S3D::NodeType::Sphere, document, now);
     db.upsert(s2, S3D::Coord{1, 2, 3}, now);
-    db.upsert(s2, S3D::RADIUS{3}, now);
+    db.upsert(s2, S3D::Radius{3}, now);
 
     db.connect(unionNode, s1, now);
     db.connect(unionNode, s2, now);

@@ -6,10 +6,10 @@
 #include "data/Radius.h"
 
 namespace S3D {
-    RADIUS::RADIUS(float magnitude) {
+    Radius::Radius(float magnitude) {
         assert(magnitude >= 0);
         this->magnitude_ = magnitude;
     }
 
-    float RADIUS::magnitude() const { return this->magnitude_; }
+    float Radius::magnitude() const { return this->magnitude_; }
 }

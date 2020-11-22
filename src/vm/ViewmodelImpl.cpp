@@ -104,7 +104,7 @@ const std::string& ViewModelImpl::message() const {
         auto now = TimestampFactory().timestamp();
         std::visit(overloaded {
             [this, &now, &entity](const Coord& coord) { this->db_->upsert(entity, coord, now); },
-            [this, &now, &entity](const RADIUS& radius) { this->db_->upsert(entity, radius, now); },
+            [this, &now, &entity](const Radius& radius) { this->db_->upsert(entity, radius, now); },
             [this, &now, &entity](const SetOperationType& type) { this->db_->upsert(entity, type, now); },
             [this, &now, &entity](const std::string& name) { this->db_->upsert(entity, name, now); }
         }, attribute);

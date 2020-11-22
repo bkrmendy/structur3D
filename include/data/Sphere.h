@@ -18,10 +18,10 @@ namespace S3D {
 struct Sphere: public Node {
     const ID uid;
     Coord coord;
-    RADIUS radius;
+    Radius radius;
     
     Sphere() = delete;
-    Sphere(const ID uid, const Coord& c, RADIUS r) : uid{uid}, coord{c}, radius{r} { }
+    Sphere(const ID uid, const Coord& c, Radius r) : uid{uid}, coord{c}, radius{r} { }
 
     virtual ID id() const { return this->uid; }
 

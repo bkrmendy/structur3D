@@ -50,7 +50,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
       db.upsert(entity, coord, 0);
 
       for (const auto& entry : entries) {
-          db.upsert(entity, S3D::RADIUS(std::get<1>(entry)), std::get<0>(entry));
+          db.upsert(entity, S3D::Radius(std::get<1>(entry)), std::get<0>(entry));
       }
 
       auto radiusFromDb = db.sphere(entity).value().radius.magnitude();
@@ -62,7 +62,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
           return std::get<0>(a) < std::get<0>(b);
       });
 
-      auto latestRadius = S3D::RADIUS{std::get<1>(*latest_entry)}.magnitude();
+      auto latestRadius = S3D::Radius{std::get<1>(*latest_entry)}.magnitude();
 
       RC_ASSERT(approximatelyEqual(radiusFromDb, latestRadius, 1));
 }
@@ -78,7 +78,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
 
               S3D::ID document = factory();
               S3D::ID entity = factory();
-              auto radius = S3D::RADIUS{5};
+              auto radius = S3D::Radius{5};
 
               db.upsert(document, "Test document", 0);
 

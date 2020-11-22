@@ -51,7 +51,7 @@ namespace S3D {
         return a.x == b.x && a.y == b.y && a.z == b.z;
     }
 
-    bool operator==(const RADIUS& a, const RADIUS& b) {
+    bool operator==(const Radius& a, const Radius& b) {
         return a.magnitude() == b.magnitude();
     }
 }
@@ -65,8 +65,8 @@ TEST(DocumentTests, PropertyAccessorsOK) {
     const auto docId = makeId();
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
 
-    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
-    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
 
     auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
     auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
@@ -85,13 +85,13 @@ TEST(DocumentTests, UpdateSphereRadius) {
     std::shared_ptr<S3D::MockDatabase> db = std::make_shared<S3D::MockDatabase>();
     auto makeId = S3D::IDFactory();
     const auto docId = makeId();
-    auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
+    auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
     std::vector<std::shared_ptr<S3D::Edge>> edges{};
     std::vector<std::shared_ptr<S3D::Node>> nodes = { sphere };
 
     auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
-    auto new_radius = S3D::RADIUS{100};
+    auto new_radius = S3D::Radius{100};
     EXPECT_CALL(*db, upsert(sphere->id(), new_radius, _)).Times(1);
 
     sphere->radius = new_radius;
@@ -104,7 +104,7 @@ TEST(DocumentTests, UpdateSphereCoords) {
     std::shared_ptr<S3D::MockDatabase> db = std::make_shared<S3D::MockDatabase>();
     auto makeId = S3D::IDFactory();
     const auto docId = makeId();
-    auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
+    auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
     std::vector<std::shared_ptr<S3D::Edge>> edges{};
     std::vector<std::shared_ptr<S3D::Node>> nodes = { sphere };
 
@@ -151,7 +151,7 @@ TEST(DocumentTests, CreateSphere) {
 
     auto doc = S3D::DocumentImpl(docId, db, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
-    auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
+    auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
 
     EXPECT_CALL(*db, create(sphere->id(), S3D::NodeType::Sphere, docId, _)).Times(1);
     EXPECT_CALL(*db, upsert(sphere->id(), sphere->radius, _)).Times(1);
@@ -168,8 +168,8 @@ TEST(DocumentTests, RemoveSetOp) {
     auto makeId = S3D::IDFactory();
     const auto docId = makeId();
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
-    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
-    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
     auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
     auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
 
@@ -193,8 +193,8 @@ TEST(DocumentTests, RemoveSphere) {
     auto makeId = S3D::IDFactory();
     const auto docId = makeId();
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
-    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
-    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
     auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
     auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
 
@@ -221,8 +221,8 @@ TEST(DocumentTest, CreateEdge) {
     auto makeId = S3D::IDFactory();
     const auto docId = makeId();
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
-    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
-    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
 
     std::vector<std::shared_ptr<S3D::Edge>> edges = {};
 
@@ -245,8 +245,8 @@ TEST(DocumentTest, RemoveEdge) {
     auto makeId = S3D::IDFactory();
     const auto docId = makeId();
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
-    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::RADIUS{4});
-    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::RADIUS{7});
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
     auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
     auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
 

@@ -53,7 +53,7 @@ namespace S3D {
             serialize(s, edge.to);
         }
 
-        using Attribute = std::variant<Coord, RADIUS, SetOperationType, std::string, std::tuple<NodeType, ID>>;
+        using Attribute = std::variant<Coord, Radius, SetOperationType, std::string, std::tuple<NodeType, ID>>;
 
         struct Update {
             const ID uid;
@@ -70,7 +70,7 @@ namespace S3D {
                     [](S& s, Coord& coord) {
                         serialize(s, coord);
                     },
-                    [](S& s, RADIUS& radius) { serialize(s, radius); },
+                    [](S& s, Radius& radius) { serialize(s, radius); },
                     [](S& s, SetOperationType& setOp) { serialize(s, setOp); },
                     [](S& s, std::string& str) {
                         s(str);
@@ -134,7 +134,7 @@ namespace S3D {
         }
 
         template <typename S>
-        void serialize(S& s, RADIUS& radius) {
+        void serialize(S& s, Radius& radius) {
             s.value4b(radius);
         }
 

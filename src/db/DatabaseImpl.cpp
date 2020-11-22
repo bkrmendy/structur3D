@@ -149,7 +149,7 @@ namespace S3D {
         this->upsertI(entity, coord, timestamp, false);
     }
 
-    void DatabaseImpl::upsertI(const ID &entity, const RADIUS &radius, Timestamp timestamp, bool deleted) {
+    void DatabaseImpl::upsertI(const ID &entity, const Radius &radius, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
 
         auto tx = sqlpp::start_transaction(*db);
@@ -172,11 +172,11 @@ namespace S3D {
         tx.commit();
     }
 
-    void DatabaseImpl::upsert(const ID &entity, const RADIUS &radius, Timestamp timestamp) {
+    void DatabaseImpl::upsert(const ID &entity, const Radius &radius, Timestamp timestamp) {
         upsertI(entity, radius, timestamp, false);
     }
 
-    void DatabaseImpl::retract(const ID &entity, const RADIUS &radius, Timestamp timestamp) {
+    void DatabaseImpl::retract(const ID &entity, const Radius &radius, Timestamp timestamp) {
         upsertI(entity, radius, timestamp, true);
     }
 
@@ -371,7 +371,7 @@ namespace S3D {
 
         return Sphere(from,
                       farthestCoord,
-                      RADIUS(maxRadius));
+                      Radius(maxRadius));
     }
 
     std::optional<SetOp> DatabaseImpl::setop(const ID &from) {

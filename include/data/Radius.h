@@ -6,11 +6,11 @@
 #define STRUCTUR3D_BASE_RADIUS_H
 
 namespace S3D {
-    class RADIUS {
+    class Radius {
         float magnitude_;
 
     public:
-        explicit RADIUS(float magnitude);
+        explicit Radius(float magnitude);
         float magnitude() const;
 
     };

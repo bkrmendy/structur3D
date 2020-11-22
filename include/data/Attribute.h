@@ -12,7 +12,7 @@
 #include "SetOperationType.h"
 
 namespace S3D {
-    using Attribute = std::variant<Coord, RADIUS, SetOperationType, std::string>;
+    using Attribute = std::variant<Coord, Radius, SetOperationType, std::string>;
 }
 
 #endif //STRUCTUR3D_BASE_ATTRIBUTE_H

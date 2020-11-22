@@ -27,8 +27,8 @@ namespace S3D {
 
 struct Database {
     // Manipulation
-    virtual void upsert(const ID&, const RADIUS&, Timestamp timestamp) = 0;
-    virtual void retract(const ID&, const RADIUS&, Timestamp timestamp) = 0;
+    virtual void upsert(const ID&, const Radius&, Timestamp timestamp) = 0;
+    virtual void retract(const ID&, const Radius&, Timestamp timestamp) = 0;
 
     virtual void upsert(const ID&, const Coord&, Timestamp timestamp) = 0;
     virtual void retract(const ID&, const Coord&, Timestamp timestamp) = 0;

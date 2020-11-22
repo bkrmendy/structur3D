@@ -95,11 +95,11 @@ TEST(ViewModelTests, OpenDocument) {
 
     auto s1ID = makeID();
     // NOLINTNEXTLINE readability-magic-numbers
-    auto s1 = S3D::Sphere{s1ID, S3D::Coord{1,2,3}, S3D::RADIUS{6}};
+    auto s1 = S3D::Sphere{s1ID, S3D::Coord{1,2,3}, S3D::Radius{6}};
 
     auto s2ID = makeID();
     // NOLINTNEXTLINE readability-magic-numbers
-    auto s2 = S3D::Sphere{s2ID, S3D::Coord{4,5,6}, S3D::RADIUS{9}};
+    auto s2 = S3D::Sphere{s2ID, S3D::Coord{4,5,6}, S3D::Radius{9}};
 
     auto dummyIDs = std::vector<S3D::IDWithType>{
         { unionID, S3D::NodeType::SetOperation }, { s1ID, S3D::NodeType::Sphere }, { s2ID, S3D::NodeType::Sphere }
