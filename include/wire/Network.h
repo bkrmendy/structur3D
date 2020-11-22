@@ -16,7 +16,6 @@ namespace S3D {
         virtual void send(Protocol::Message& message) const = 0;
         virtual void receive(Protocol::Message& message) const = 0;
 
-
         virtual ~Network() = default;
     };
 }
