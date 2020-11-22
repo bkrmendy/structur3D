@@ -12,11 +12,11 @@
 
 namespace S3D {
     struct Interactor {
-        virtual void create(std::shared_ptr <Node> node) = 0;
-        virtual void create(std::shared_ptr <Edge> edge) = 0;
+        virtual void create(std::shared_ptr<Node>, const ID& document) = 0;
+        virtual void connect(const ID& from, const ID& to) = 0;
         virtual void update(std::shared_ptr <Node> node) = 0;
-        virtual void remove(std::shared_ptr <Node> node) = 0;
-        virtual void remove(std::shared_ptr <Edge> edge) = 0;
+        virtual void remove(std::shared_ptr<Node> node, const ID& document) = 0;
+        virtual void disconnect(const ID& from, const ID& to) = 0;
 
         virtual ~Interactor() = default;
     };

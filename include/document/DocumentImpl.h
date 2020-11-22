@@ -12,6 +12,7 @@
 #include <utility>
 #include <future>
 #include <mesh/MeshFactory.h>
+#include <interactor/Interactor.h>
 
 #include "Document.h"
 #include "db/Database.h"
@@ -19,7 +20,7 @@
 namespace S3D {
 
 class DocumentImpl : public Document {
-    std::shared_ptr<Database> db;
+    std::shared_ptr<Interactor> interactor_;
 
     const ID id_;
     std::unique_ptr<Graph> graph_;
@@ -31,11 +32,11 @@ class DocumentImpl : public Document {
     void regenMesh();
 public:
     DocumentImpl(const ID& id,
-                 std::shared_ptr<Database> db,
+                 std::shared_ptr<Interactor> interactor,
                  std::unique_ptr<Graph> graph,
                  std::unique_ptr<MeshFactory> factory)
         : id_{id}
-        , db{std::move(db)}
+        , interactor_{std::move(interactor)}
         , graph_{std::move(graph)}
         , mesh_{{}, {}}
         , factory_{std::move(factory)}

@@ -8,6 +8,9 @@
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/traits/vector.h>
 
+#include <memory>
+#include <interactor/Interactor.h>
+
 #include "Network.h"
 
 
@@ -16,6 +19,10 @@ namespace S3D {
     using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
 
     class NetworkImpl : public Network {
+        std::shared_ptr<Interactor> interactor_;
+
+        NetworkImpl(std::shared_ptr<Interactor> interactor) : interactor_{std::move(interactor)} { }
+
         void sync(std::vector<Protocol::Message> &) const final;
         void send(Protocol::Message &message) const final;
         void receive(Protocol::Message& message) const final;

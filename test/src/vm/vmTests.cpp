@@ -121,7 +121,7 @@ TEST(ViewModelTests, OpenDocument) {
     vm.open(dummyDocId);
     EXPECT_TRUE(vm.document().has_value());
 
-    auto& currentDoc = vm.currentDocument.value();
+    auto& currentDoc = vm.currentDocument_.value();
     EXPECT_EQ(currentDoc->id(), dummyDocId);
     EXPECT_EQ(currentDoc->graph()->edges.size(), 2);
     EXPECT_EQ(currentDoc->graph()->nodes.size(), 3);

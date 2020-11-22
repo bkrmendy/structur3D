@@ -10,6 +10,8 @@
 #define viewmodel_h
 
 #include <future>
+#include <wire/Network.h>
+#include <interactor/Interactor.h>
 
 #include "./Viewmodel.h"
 
@@ -25,16 +27,29 @@
 
 namespace S3D {
 
-class ViewModelImpl : public ViewModel {
+class ViewModelImpl : public ViewModel, public Interactor, public std::enable_shared_from_this<ViewModelImpl> {
 public:
-    std::shared_ptr<Database> db;
+    std::unique_ptr<Database> db_;
+    std::unique_ptr<Network> network_;
     std::vector<DocumentWithName> documents_;
-    std::optional<std::unique_ptr<Document>> currentDocument;
-    std::vector<std::future<void>> cancellables;
+    std::optional<std::unique_ptr<Document>> currentDocument_;
+    std::vector<std::future<void>> cancellables_;
     std::string message_;
 
-    explicit ViewModelImpl(std::shared_ptr<Database> db);
+    explicit ViewModelImpl(std::unique_ptr<Database> db, std::unique_ptr<Network> network);
 
+    /*
+     * Interactor interface
+     */
+    void create(std::shared_ptr<Node>, const ID& document) final;
+    void connect(const ID& from, const ID& to) final;
+    void update(std::shared_ptr <Node> node) final;
+    void remove(std::shared_ptr<Node>, const ID& document) final;
+    void disconnect(const ID& from, const ID& to) final;
+
+    /*
+     * Viewmodel interface
+     */
     void open(const ID& document) final;
     void createDocument(const std::string& name) final;
     const std::optional<std::unique_ptr<Document>>& document() const final;
