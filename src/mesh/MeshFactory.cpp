@@ -45,7 +45,7 @@ namespace S3D {
                     square(x - sphere->coord.x)
                     + square(y - sphere->coord.y)
                     + square(z - sphere->coord.z)
-                    - sphere->radius
+                    - sphere->radius.magnitude()
             );
         }
         if (auto setop = std::dynamic_pointer_cast<SetOp>(tree.node)) {

@@ -19,6 +19,8 @@ namespace S3D {
 
         Coord(float x, float y, float z) : x{x}, y{y}, z{z} {}
     };
+
+    float distance_from_origin(const Coord&);
 }
 
 

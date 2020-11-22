@@ -50,6 +50,10 @@ namespace S3D {
     bool operator==(const Coord& a, const Coord& b) {
         return a.x == b.x && a.y == b.y && a.z == b.z;
     }
+
+    bool operator==(const RADIUS& a, const RADIUS& b) {
+        return a.magnitude() == b.magnitude();
+    }
 }
 
 using ::testing::_;

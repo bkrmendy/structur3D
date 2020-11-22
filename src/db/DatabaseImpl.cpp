@@ -7,13 +7,16 @@
 //
 
 #include <string>
+#include <iostream>
 
 #include "db/DatabaseImpl.h"
 #include "generated/tables.h"
 #include "data/Timestamp.h"
+#include "data/Coord.h"
 
 #include "boost/uuid/uuid_io.hpp"
 
+#include "sqlpp11/sqlpp11.h"
 #include "sqlpp11/remove.h"
 #include "sqlpp11/insert.h"
 #include "sqlpp11/transaction.h"
@@ -26,14 +29,14 @@ namespace S3D {
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Coord removeCoord;
-        this->db->operator()(
+        (*db)(
             remove_from(removeCoord)
                 .where(removeCoord.entity == eid
                        && removeCoord.timestamp <= timestamp
-                       || removeCoord.deleted == 1));
+                       || removeCoord.deleted == is_deleted(true)));
 
         Schema::Coord insertCoord;
-        this->db->operator()(
+        (*db)(
             insert_into(insertCoord)
                  .set(insertCoord.deleted = is_deleted(deleted),
                       insertCoord.timestamp = timestamp,
@@ -154,18 +157,19 @@ namespace S3D {
         auto tx = sqlpp::start_transaction(*db);
 
         Schema::Radius removeRadius;
-        this->db->operator()(
+        (*db)(
             remove_from(removeRadius)
                 .where(removeRadius.entity == eid
-                       && removeRadius.timestamp <= timestamp));
+                       && removeRadius.timestamp <= timestamp
+                       || removeRadius.deleted == is_deleted(true)));
 
         Schema::Radius insertRadius;
-        this->db->operator()(
+        (*db)(
             insert_into(insertRadius)
                 .set(insertRadius.deleted = is_deleted(deleted),
                      insertRadius.timestamp = timestamp,
                      insertRadius.entity = eid,
-                     insertRadius.magnitude = radius));
+                     insertRadius.magnitude = radius.magnitude()));
 
         tx.commit();
     }
@@ -175,7 +179,7 @@ namespace S3D {
     }
 
     void DatabaseImpl::retract(const ID &entity, const RADIUS &radius, Timestamp timestamp) {
-        upsertI(entity, radius, timestamp, false);
+        upsertI(entity, radius, timestamp, true);
     }
 
     void DatabaseImpl::upsert(const ID &entity, const SetOperationType &type, Timestamp timestamp) {
@@ -269,6 +273,14 @@ namespace S3D {
         return res;
     }
 
+    template <typename Table>
+    auto latestTimeStampQuery(Table table, const std::string& eid) {
+        return select(max(table.timestamp))
+                    .from(table)
+                    .where(table.deleted == 0 && table.entity == eid)
+                    .group_by(table.timestamp);
+    }
+
     std::vector<ID> DatabaseImpl::edges(const ID &of_entity) {
         std::string eid = to_string(of_entity);
         Schema::Edge edge;
@@ -294,52 +306,70 @@ namespace S3D {
 
         Schema::Document documentLookup;
         auto lookup
-            = dynamic_select(*db)
-                        .columns(documentLookup.entity)
+            = (*db)(select(documentLookup.entity)
                         .from(documentLookup)
                         .where(documentLookup.deleted == 0 && documentLookup.entity == eid)
                         .order_by(documentLookup.timestamp.desc())
-                        .limit(1U);
+                        .limit(1U));
 
-        if (this->db->operator()(lookup).empty()) {
+        if (lookup.empty()) {
             return std::nullopt;
         }
 
-        Schema::Radius radius;
-        auto radiusLookup
-            = dynamic_select(*db)
-                .columns(radius.magnitude)
-                .from(radius)
-                .where(radius.deleted == 0 && radius.entity == eid)
-                .order_by(radius.timestamp.desc())
-                .limit(1U);
-
-        auto radiusRes = db->operator()(radiusLookup);
+        Schema::Radius radiusTable;
+        auto radiusRes
+            = (*db)(select(radiusTable.magnitude, radiusTable.timestamp)
+                        .from(radiusTable)
+                        .where(radiusTable.deleted == 0
+                                && radiusTable.entity == eid));
 
         if (radiusRes.empty()) {
             return std::nullopt;
         }
 
-        Schema::Coord coord;
-        auto coordLookup
-            = dynamic_select(*db)
-                .columns(coord.x, coord.y, coord.z)
-                .from(coord)
-                .where(coord.deleted == 0 && coord.entity == eid)
-                .order_by(coord.timestamp.desc())
-                .limit(1U);
+        auto maxTimestamp = radiusRes.front().timestamp;
+        float maxRadius = radiusRes.front().magnitude;
+        for (const auto& radius : radiusRes) {
+            if (radius.timestamp == maxTimestamp) {
+                if (radius.magnitude > maxRadius) {
+                    maxRadius = radius.magnitude;
+                    maxTimestamp = radius.timestamp;
+                }
+            } else if (radius.timestamp > maxTimestamp) {
+                maxRadius = radius.magnitude;
+                maxTimestamp = radius.timestamp;
+            }
+        }
 
-        auto coordRes = db->operator()(coordLookup);
+        Schema::Coord coordTable;
+        auto coordRes
+            = (*db)(select(coordTable.x, coordTable.y, coordTable.z, coordTable.timestamp)
+                .from(coordTable)
+                .where(coordTable.deleted == 0
+                        && coordTable.entity == eid));
 
         if (coordRes.empty()) {
             return std::nullopt;
         }
 
+        Coord farthestCoord = Coord(coordRes.front().x, coordRes.front().y, coordRes.front().z);
+        auto maxCoordTimestamp = coordRes.front().timestamp;
+        for (const auto& row : coordRes) {
+            auto coord = Coord(row.x, row.y, row.z);
+            if (maxCoordTimestamp == row.timestamp) {
+                if (distance_from_origin(coord) > distance_from_origin(farthestCoord)) {
+                    farthestCoord = coord;
+                    maxCoordTimestamp = row.timestamp;
+                }
+            } else if (row.timestamp > maxCoordTimestamp) {
+                farthestCoord = coord;
+                maxCoordTimestamp = row.timestamp;
+            }
+        }
+
         return Sphere(from,
-                      Coord(coordRes.front().x,
-                            coordRes.front().y,
-                            coordRes.front().z),
-                      radiusRes.front().magnitude);
+                      farthestCoord,
+                      RADIUS(maxRadius));
     }
 
     std::optional<SetOp> DatabaseImpl::setop(const ID &from) {

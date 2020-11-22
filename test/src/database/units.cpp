@@ -39,7 +39,7 @@ TEST(DatabaseImplTests, CreateSphere) {
 
     auto sphere = db.sphere(entity);
     EXPECT_EQ(sphere->id(), entity);
-    EXPECT_FLOAT_EQ(sphere->radius, radius);
+    EXPECT_FLOAT_EQ(sphere->radius.magnitude(), radius.magnitude());
     EXPECT_FLOAT_EQ(sphere->coord.x, coord.x);
     EXPECT_FLOAT_EQ(sphere->coord.y, coord.y);
     EXPECT_FLOAT_EQ(sphere->coord.z, coord.z);
@@ -240,13 +240,13 @@ TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
     EXPECT_EQ(unionNodeFromDb->type, S3D::SetOperationType::Union);
 
     auto s1FromDb = db.sphere(s1);
-    EXPECT_EQ(s1FromDb->radius, 2);
+    EXPECT_FLOAT_EQ(s1FromDb->radius.magnitude(), 2);
     EXPECT_FLOAT_EQ(s1FromDb->coord.x, -1);
     EXPECT_FLOAT_EQ(s1FromDb->coord.y, -2);
     EXPECT_FLOAT_EQ(s1FromDb->coord.z, -3);
 
     auto s2FromDb = db.sphere(s2);
-    EXPECT_EQ(s2FromDb->radius, 3);
+    EXPECT_FLOAT_EQ(s2FromDb->radius.magnitude(), 3);
     EXPECT_FLOAT_EQ(s2FromDb->coord.x, 1);
     EXPECT_FLOAT_EQ(s2FromDb->coord.y, 2);
     EXPECT_FLOAT_EQ(s2FromDb->coord.z, 3);

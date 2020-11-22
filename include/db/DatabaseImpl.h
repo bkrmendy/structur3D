@@ -52,7 +52,7 @@ public:
         }
     }
 
-    int is_deleted(bool deleted) { return deleted ? 1 : 0; }
+    constexpr int is_deleted(bool deleted) { return deleted ? 1 : 0; }
 
     void upsertI(const ID& entity, const Coord& coord, Timestamp timestamp, bool deleted);
 
