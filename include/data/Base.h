@@ -16,21 +16,6 @@ namespace S3D {
 using ID = boost::uuids::uuid;
 using IDFactory = boost::uuids::random_generator;
 
-class RADIUS {
-    float magnitude_;
-
-public:
-    explicit RADIUS(float magnitude) {
-        assert(magnitude >= 0);
-        this->magnitude_ = magnitude;
-    }
-
-    float magnitude() const {
-        return this->magnitude_;
-    }
-
-};
-
 }
 
 

@@ -8,6 +8,7 @@
 #include <variant>
 #include "Coord.h"
 #include "Base.h"
+#include "Radius.h"
 #include "SetOperationType.h"
 
 namespace S3D {

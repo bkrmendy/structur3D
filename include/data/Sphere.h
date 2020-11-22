@@ -12,6 +12,7 @@
 #include "./Base.h"
 #include "./Node.h"
 #include "./Coord.h"
+#include "Radius.h"
 
 namespace S3D {
 struct Sphere: public Node {
