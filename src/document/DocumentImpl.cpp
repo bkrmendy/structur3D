@@ -11,6 +11,7 @@
 #include "document/DocumentImpl.h"
 #include "data/Sphere.h"
 #include "data/SetOp.h"
+#include "data/Attribute.h"
 
 namespace S3D {
     void DocumentImpl::create(const std::shared_ptr<Node> node) {
@@ -52,20 +53,17 @@ namespace S3D {
         this->graph_->edges.erase(
                 std::remove(this->graph_->edges.begin(), this->graph_->edges.end(), edge),
                 this->graph_->edges.end());
-        auto now = TimestampFactory().timestamp();
         this->interactor_->disconnect(edge->from->id(), edge->to->id());
         this->regenMesh();
     }
 
     void DocumentImpl::update(const std::shared_ptr<Node> node) {
-        // TODO
-//        auto now = TimestampFactory().timestamp();
-//        if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
-//            this->db->upsert(sphere->uid, sphere->radius, now);
-//            this->db->upsert(sphere->uid, sphere->coord, now);
-//        } else if (auto setop = std::dynamic_pointer_cast<SetOp>(node)) {
-//            this->db->upsert(setop->uid, setop->type, now);
-//        }
+        if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
+            this->interactor_->update(sphere->uid, Attribute{sphere->radius});
+            this->interactor_->update(sphere->uid, Attribute{sphere->coord});
+        } else if (auto setOp = std::dynamic_pointer_cast<SetOp>(node)) {
+            this->interactor_->update(setOp->uid, Attribute{setOp->type});
+        }
         this->regenMesh();
     }
 

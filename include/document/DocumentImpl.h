@@ -19,7 +19,7 @@
 
 namespace S3D {
 
-class DocumentImpl : public Document {
+class DocumentImpl final : public Document {
     std::shared_ptr<Interactor> interactor_;
 
     const ID id_;
@@ -42,18 +42,18 @@ public:
         , factory_{std::move(factory)}
         { }
 
-    void create(std::shared_ptr<Node> node) final;
-    void create(std::shared_ptr<Edge> edge) final;
+    void create(std::shared_ptr<Node> node) override;
+    void create(std::shared_ptr<Edge> edge) override;
 
-    void update(std::shared_ptr<Node> node) final;
+    void update(std::shared_ptr<Node> node) override;
 
-    void remove(std::shared_ptr<Node> node) final;
-    void remove(std::shared_ptr<Edge> edge) final;
+    void remove(std::shared_ptr<Node> node) override;
+    void remove(std::shared_ptr<Edge> edge) override;
 
-    const std::unique_ptr<Graph>& graph() const final;
+    const std::unique_ptr<Graph>& graph() const override;
 
-    const std::unique_ptr<Mesh>& mesh() const final;
-    const ID id() const final;
+    const std::unique_ptr<Mesh>& mesh() const override;
+    const ID id() const override;
 };
 
 }

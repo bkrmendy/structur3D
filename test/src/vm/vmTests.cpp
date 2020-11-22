@@ -13,10 +13,10 @@
 #include "vm/ViewmodelImpl.h"
 
 namespace S3D {
-    class MockDatabase : public S3D::Database {
+    class MockDatabase : public Database {
     public:
-        MOCK_METHOD(void, upsert, (const ID&, const RADIUS&, Timestamp timestamp), (override));
-        MOCK_METHOD(void, retract, (const ID&, const RADIUS&, Timestamp timestamp), (override));
+        MOCK_METHOD(void, upsert, (const ID&, const Radius&, Timestamp timestamp), (override));
+        MOCK_METHOD(void, retract, (const ID&, const Radius&, Timestamp timestamp), (override));
 
         MOCK_METHOD(void, upsert, (const ID&, const Coord&, Timestamp timestamp), (override));
         MOCK_METHOD(void, retract, (const ID&, const Coord&, Timestamp timestamp), (override));
@@ -39,14 +39,21 @@ namespace S3D {
         MOCK_METHOD(std::optional<SetOp>, setop, (const ID& from), (override));
         MOCK_METHOD(std::vector<ID>, edges, (const ID&), (override));
     };
+
+    class MockNetwork : public Network {
+    public:
+        MOCK_METHOD(void, sync, (std::vector<Protocol::Message>&), (const, override));
+        MOCK_METHOD(void, send, (Protocol::Message&), (const, override));
+        MOCK_METHOD(void, receive, (Protocol::Message&), (const, override));
+    };
 }
 
 using ::testing::Return;
-using ::testing::WithArg;
-using ::testing::WithArgs;
+using ::testing::_;
 
 TEST(ViewModelTests, BrandNewViewModel) {
-    std::shared_ptr<S3D::MockDatabase> mockDB = std::make_shared<S3D::MockDatabase>();
+    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
+    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
     auto makeID = S3D::IDFactory();
 
     std::vector<S3D::DocumentWithName> docs = {{ makeID(), "Doc 1" }, { makeID(), "Doc 2" }};
@@ -54,19 +61,20 @@ TEST(ViewModelTests, BrandNewViewModel) {
     ON_CALL(*mockDB, documents())
             .WillByDefault(Return(docs));
 
-    auto vm = S3D::ViewModelImpl{mockDB};
+    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
 
-    EXPECT_EQ(vm.document(), std::nullopt);
-    EXPECT_TRUE(vm.message().empty());
-    EXPECT_EQ(vm.documents().size(), 2);
-    EXPECT_EQ(vm.documents().at(0).uid, docs.at(0).uid);
-    EXPECT_EQ(vm.documents().at(0).name, docs.at(0).name);
-    EXPECT_EQ(vm.documents().at(1).uid, docs.at(1).uid);
-    EXPECT_EQ(vm.documents().at(1).name, docs.at(1).name);
+    EXPECT_EQ(vm->document(), nullptr);
+    EXPECT_TRUE(vm->message().empty());
+    EXPECT_EQ(vm->documents().size(), 2);
+    EXPECT_EQ(vm->documents().at(0).uid, docs.at(0).uid);
+    EXPECT_EQ(vm->documents().at(0).name, docs.at(0).name);
+    EXPECT_EQ(vm->documents().at(1).uid, docs.at(1).uid);
+    EXPECT_EQ(vm->documents().at(1).name, docs.at(1).name);
 }
 
 TEST(ViewModelTests, CreateDocument) {
-    std::shared_ptr<S3D::MockDatabase> mockDB = std::make_shared<S3D::MockDatabase>();
+    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
+    std::unique_ptr<S3D::Network> mockNet = std::make_unique<S3D::MockNetwork>();
     auto makeID = S3D::IDFactory();
 
     std::vector<S3D::DocumentWithName> docs{};
@@ -74,19 +82,20 @@ TEST(ViewModelTests, CreateDocument) {
     ON_CALL(*mockDB, documents())
             .WillByDefault(Return(docs));
 
-    auto vm = S3D::ViewModelImpl{mockDB};
+    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
 
-    EXPECT_TRUE(vm.documents().empty());
+    EXPECT_TRUE(vm->documents().empty());
 
     auto name = "Test Document";
 
-    vm.createDocument(name);
-    EXPECT_EQ(vm.documents().size(), 1);
-    EXPECT_EQ(vm.documents().at(0).name, name);
+    vm->createDocument(name);
+    EXPECT_EQ(vm->documents().size(), 1);
+    EXPECT_EQ(vm->documents().at(0).name, name);
 }
 
 TEST(ViewModelTests, OpenDocument) {
-    std::shared_ptr<S3D::MockDatabase> mockDB = std::make_shared<S3D::MockDatabase>();
+    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
+    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
     auto makeID = S3D::IDFactory();
 
     auto dummyDocId = makeID();
@@ -116,15 +125,20 @@ TEST(ViewModelTests, OpenDocument) {
     ON_CALL(*mockDB, edges(unionID))
         .WillByDefault(Return(std::vector<S3D::ID>{s1ID, s2ID}));
 
-    auto vm = S3D::ViewModelImpl{mockDB};
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
 
-    vm.open(dummyDocId);
-    EXPECT_TRUE(vm.document().has_value());
+    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
 
-    auto& currentDoc = vm.currentDocument_.value();
+    vm->open(dummyDocId);
+    EXPECT_TRUE(vm->document() != nullptr);
+
+    const auto& currentDoc = vm->document();
     EXPECT_EQ(currentDoc->id(), dummyDocId);
     EXPECT_EQ(currentDoc->graph()->edges.size(), 2);
     EXPECT_EQ(currentDoc->graph()->nodes.size(), 3);
     EXPECT_EQ(currentDoc->graph()->edges.at(0)->from->id(), unionID);
     EXPECT_EQ(currentDoc->graph()->edges.at(1)->from->id(), unionID);
+
+    vm->db_.reset();
+    vm->network_.reset();
 }

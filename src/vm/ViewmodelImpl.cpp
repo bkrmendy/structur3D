@@ -22,7 +22,7 @@ ViewModelImpl::ViewModelImpl(std::unique_ptr<Database> db, std::unique_ptr<Netwo
     , cancellables_{}
     , documents_{}
     , message_{} {
-        this->currentDocument_ = std::nullopt;
+        this->currentDocument_ = nullptr;
         this->documents_ = this->db_->documents();
 }
 
@@ -70,12 +70,12 @@ void ViewModelImpl::open(const ID &document) {
 
     this->currentDocument_
         = std::make_unique<DocumentImpl>(document,
-                                         std::shared_ptr<Interactor>(this),
+                                         shared_from_this(),
                                          std::make_unique<Graph>(edges, nodes),
                                          std::make_unique<MeshFactory>());
 }
 
-const std::optional<std::unique_ptr<Document>>& ViewModelImpl::document() const {
+const std::unique_ptr<Document>& ViewModelImpl::document() const {
     return this->currentDocument_;
 }
 

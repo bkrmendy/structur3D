@@ -22,7 +22,7 @@ namespace S3D {
 
 class ViewModel {
 public:
-    virtual const std::optional<std::unique_ptr<Document>>& document() const = 0;
+    virtual const std::unique_ptr<Document>& document() const = 0;
     virtual void open(const ID& document) = 0;
     virtual void createDocument(const std::string& name) = 0;
     virtual const std::vector<DocumentWithName>& documents() const = 0;
