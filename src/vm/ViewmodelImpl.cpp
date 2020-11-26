@@ -28,6 +28,8 @@ ViewModelImpl::ViewModelImpl(std::unique_ptr<Database> db, std::unique_ptr<Clien
 
 void ViewModelImpl::createDocument(const Name& name) {
     auto makeID = IDFactory();
+    auto now = TimestampFactory().timestamp();
+    this->db_->upsert(makeID(), name, now);
     this->documents_.emplace_back(makeID(), name);
 }
 

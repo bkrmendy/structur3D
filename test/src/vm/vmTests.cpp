@@ -42,6 +42,7 @@ namespace S3D {
 
     class MockNetwork : public ClientEndpoint {
     public:
+        MOCK_METHOD(void, connect, (std::string& uri), (const, override));
         MOCK_METHOD(void, sync, (std::vector<Protocol::Message>&), (const, override));
         MOCK_METHOD(void, send, (Protocol::Message&), (const, override));
         MOCK_METHOD(void, receive, (Protocol::Message&), (const, override));
@@ -82,11 +83,12 @@ TEST(ViewModelTests, CreateDocument) {
     ON_CALL(*mockDB, documents())
             .WillByDefault(Return(docs));
 
+    auto name = S3D::Name{"Test Document"};
+    EXPECT_CALL(*mockDB, upsert(_, name, _));
+
     auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
 
     EXPECT_TRUE(vm->documents().empty());
-
-    auto name = S3D::Name{"Test Document"};
 
     vm->createDocument(name);
     EXPECT_EQ(vm->documents().size(), 1);
