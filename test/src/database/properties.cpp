@@ -156,11 +156,11 @@ RC_GTEST_PROP(DatabasePropertyTests,
         latestName = S3D::DatabaseImpl::preferredNameOf(std::get<1>(entry), latestName);
     }
 
-    std::cout << "---------------------------" << std::endl;
-
-    if (nameFromDb.get() != latestName.get()) {
-        int h = 3;
-    }
-
     RC_ASSERT(nameFromDb == latestName);
+}
+
+RC_GTEST_PROP(DatabaseImplProperties,
+              PreferredNamePredicateCommutative,
+              (S3D::Name& left, S3D::Name& right)) {
+    RC_ASSERT(S3D::DatabaseImpl::preferredNameOf(left, right) == S3D::DatabaseImpl::preferredNameOf(right, left));
 }

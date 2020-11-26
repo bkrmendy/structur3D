@@ -82,10 +82,10 @@ TEST(DatabaseImplTests, UpdateDocumentName) {
     db.upsert(document, S3D::Name{"Test document"}, 0);
 
     auto new_name = S3D::Name{"Test name 2"};
-    db.upsert(document, S3D::Name{"djlakdj"}, 2);
-    db.upsert(document, S3D::Name{"dfjaslkfjasld;"}, 3);
-    db.upsert(document, S3D::Name{"fjldafjalkf"}, 4);
     db.upsert(document, new_name, 5);
+    db.upsert(document, S3D::Name{"fjldafjalkf"}, 4);
+    db.upsert(document, S3D::Name{"dfjaslkfjasld;"}, 3);
+    db.upsert(document, S3D::Name{"djlakdj"}, 2);
 
     EXPECT_EQ(db.documents().at(0).name, new_name);
 }
@@ -121,6 +121,31 @@ TEST(DatabaseImplTests, ConcurrentUpdateNameChoosesLexicoGraphically) {
     db.upsert(document, at, now);
 
     EXPECT_EQ(db.documents().at(0).name, at);
+}
+
+TEST(DatabaseImplTests, UpdateRadiusOutOfOrder) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entity = factory();
+    S3D::Coord coord = S3D::Coord{1,2,3};
+    auto radius = S3D::Radius{5};
+
+    db.upsert(document, S3D::Name{"Test document"}, 0);
+
+    db.create(entity, S3D::NodeType::Sphere, document, 0);
+    db.upsert(entity, coord, 0);
+    db.upsert(entity, radius, 0);
+
+    db.upsert(entity, S3D::Radius{14}, 4);
+    db.upsert(entity, S3D::Radius{13}, 3);
+    db.upsert(entity, S3D::Radius{12}, 2);
+    db.upsert(entity, S3D::Radius{11}, 1);
+    db.upsert(entity, S3D::Radius{10}, 0);
+
+    EXPECT_EQ(db.sphere(entity)->radius.magnitude(), 14);
 }
 
 TEST(DatabaseImplTests, PreferredNameTests) {

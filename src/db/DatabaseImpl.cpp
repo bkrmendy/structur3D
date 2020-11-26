@@ -7,7 +7,6 @@
 //
 
 #include <string>
-#include <iostream>
 
 #include "db/DatabaseImpl.h"
 #include "generated/tables.h"
@@ -31,7 +30,7 @@ namespace S3D {
                 .from(table)
                 .where(table.deleted == is_deleted(false)
                         && table.entity == eid)
-                .group_by(table.timestamp);
+                .group_by(table.entity);
     }
 
     template<typename Table>
@@ -95,8 +94,6 @@ namespace S3D {
                          insertName.timestamp = timestamp,
                          insertName.deleted = is_deleted(deleted),
                          insertName.name = name.get()));
-
-        std::cout << timestamp << ": " << name.get() << std::endl;
 
         tx.commit();
     }
@@ -242,7 +239,6 @@ namespace S3D {
                 auto latestName = Name{nameLookup.front().name};
 
                 for (const auto& row : nameLookup) {
-                    std::cout << row.name << std::endl;
                     latestName = DatabaseImpl::preferredNameOf(latestName, Name{row.name});
                 }
 
@@ -464,18 +460,10 @@ namespace S3D {
     }
 
     Name DatabaseImpl::preferredNameOf(const Name &left, const Name &right) {
-        if (left.get().size() < right.get().size()) {
-            /// In case of concurrent modification, choose longer name
-            return right;
+        if (left.get() < right.get()) {
+            return left;
         }
-        if (left.get().size() == left.get().size()) {
-            /// In case of concurrent modification and equal lengths, compare lexicographically
-            if (left.get() < right.get()) {
-                return right;
-            }
-        }
-
-        return left;
+        return right;
     }
 }
 
