@@ -16,7 +16,7 @@
 
 namespace S3D {
 
-ViewModelImpl::ViewModelImpl(std::unique_ptr<Database> db, std::unique_ptr<Network> network)
+ViewModelImpl::ViewModelImpl(std::unique_ptr<Database> db, std::unique_ptr<ClientEndpoint> network)
     : db_{std::move(db)}
     , network_{std::move(network)}
     , cancellables_{}

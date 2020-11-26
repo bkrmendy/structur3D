@@ -33,11 +33,11 @@ add_library(structur3d_base SHARED
         src/base/SetOperationType.cpp
         src/base/Radius.cpp
 
-        src/wire/NetworkImpl.cpp
+        src/wire/ClientImpl.cpp
 
         src/mesh/MeshFactory.cpp
 
-        src/utils/random_string.cpp src/data/Name.cpp)
+        src/utils/random_string.cpp src/data/Name.cpp include/wire/Server.h)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})

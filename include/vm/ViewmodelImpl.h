@@ -10,7 +10,7 @@
 #define viewmodel_h
 
 #include <future>
-#include <wire/Network.h>
+#include <wire/ClientEndpoint.h>
 #include <interactor/Interactor.h>
 
 #include "./Viewmodel.h"
@@ -30,13 +30,13 @@ namespace S3D {
 class ViewModelImpl final : public ViewModel, public Interactor, public std::enable_shared_from_this<ViewModelImpl> {
 public:
     std::unique_ptr<Database> db_;
-    std::unique_ptr<Network> network_;
+    std::unique_ptr<ClientEndpoint> network_;
     std::vector<DocumentWithName> documents_;
     std::unique_ptr<Document> currentDocument_;
     std::vector<std::future<void>> cancellables_;
     std::string message_;
 
-    ViewModelImpl(std::unique_ptr<S3D::Database> db, std::unique_ptr<Network> network);
+    ViewModelImpl(std::unique_ptr<S3D::Database> db, std::unique_ptr<ClientEndpoint> network);
 
     /*
      * Interactor interface

@@ -40,7 +40,7 @@ namespace S3D {
         MOCK_METHOD(std::vector<ID>, edges, (const ID&), (override));
     };
 
-    class MockNetwork : public Network {
+    class MockNetwork : public ClientEndpoint {
     public:
         MOCK_METHOD(void, sync, (std::vector<Protocol::Message>&), (const, override));
         MOCK_METHOD(void, send, (Protocol::Message&), (const, override));
@@ -74,7 +74,7 @@ TEST(ViewModelTests, BrandNewViewModel) {
 
 TEST(ViewModelTests, CreateDocument) {
     std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
-    std::unique_ptr<S3D::Network> mockNet = std::make_unique<S3D::MockNetwork>();
+    std::unique_ptr<S3D::ClientEndpoint> mockNet = std::make_unique<S3D::MockNetwork>();
     auto makeID = S3D::IDFactory();
 
     std::vector<S3D::DocumentWithName> docs{};
