@@ -36,9 +36,8 @@ namespace S3D {
     template<typename Table>
     auto CRDTCollectGarbage(Table table, const std::string& eid, Timestamp timestamp) {
         return remove_from(table)
-                .where(table.entity == eid
-                       && table.timestamp <= timestamp
-                       || table.deleted == is_deleted(true));
+                .where(table.timestamp < timestamp
+                        && (table.entity == eid || table.deleted == is_deleted(true)));
     }
 
     void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, Timestamp timestamp, bool deleted) {
@@ -104,16 +103,16 @@ namespace S3D {
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Edge removeEdge;
-        this->db->operator()(
-            remove_from(removeEdge)
-                .where(removeEdge.entity == eid
-                       && removeEdge.entityTo == eid_to
-                       && removeEdge.timestamp < timestamp
-                       || removeEdge.deleted == is_deleted(true)));
+        (*db)(remove_from(removeEdge)
+                    .where(removeEdge.entity == eid
+                           && removeEdge.entityTo == eid_to
+                           && removeEdge.timestamp < timestamp
+                           || (
+                                   removeEdge.timestamp < timestamp
+                                && removeEdge.deleted == is_deleted(true))));
 
         Schema::Edge insertEdge;
-        this->db->operator()(
-            insert_into(insertEdge)
+        (*db)(insert_into(insertEdge)
                 .set(insertEdge.entity = eid,
                      insertEdge.entityTo = eid_to,
                      insertEdge.timestamp = timestamp,
@@ -229,7 +228,7 @@ namespace S3D {
         for (const auto& documentRow : (*db)(docLookup)) {
             Schema::Name nameTable;
             auto nameLookup
-                = (*db)(select(nameTable.name)
+                = (*db)(select(nameTable.name, nameTable.timestamp)
                         .from(nameTable)
                         .where(nameTable.deleted == is_deleted(false)
                                 && nameTable.entity == documentRow.document
@@ -280,17 +279,34 @@ namespace S3D {
         std::string eid = to_string(of_entity);
         Schema::Edge edge;
         auto lookup
-            = dynamic_select(*db)
-                .columns(edge.entityTo)
+            = select(edge.entityTo, max(edge.timestamp))
                 .from(edge)
-                .where(edge.deleted == 0 && edge.entity == eid);
+                .where(edge.entity == eid)
+                .group_by(edge.entityTo);
 
         std::vector<ID> res;
-        for (const auto& row : db->operator()(lookup)) {
-            std::stringstream stream{row.entityTo};
-            ID uid;
-            stream >> uid;
-            res.push_back(uid);
+
+        for (const auto& row : (*db)(lookup)) {
+            Schema::Edge thisEdge;
+            auto latestEdges =
+                    (*db)(select(thisEdge.deleted)
+                        .from(thisEdge)
+                        .where(thisEdge.entity == eid
+                                && thisEdge.entityTo == row.entityTo
+                                && thisEdge.timestamp == row.max));
+
+            bool alive = false;
+            for (const auto& entry : latestEdges) {
+                int deleted = entry.deleted;
+                alive |= deleted == 0;
+            }
+
+            if (alive) {
+                std::stringstream stream{row.entityTo};
+                ID uid;
+                stream >> uid;
+                res.push_back(uid);
+            }
         }
 
         return res;
@@ -391,7 +407,7 @@ namespace S3D {
         auto edge = R"(
         CREATE TABLE IF NOT EXISTS edge (
         deleted INTEGER NOT NULL DEFAULT 0,
-        timestamp INTEGER NOT NULL,
+        timestamp UNSIGNED BIG INT NOT NULL,
         entity TEXT NOT NULL,
         entity_to TEXT NOT NULL
         );
@@ -400,7 +416,7 @@ namespace S3D {
         auto radius = R"(
         CREATE TABLE IF NOT EXISTS radius (
              deleted INTEGER NOT NULL DEFAULT 0,
-             timestamp INTEGER NOT NULL,
+             timestamp UNSIGNED BIG INT NOT NULL,
              entity TEXT NOT NULL,
              magnitude REAL NOT NULL CHECK (magnitude >= 0)
          );
@@ -409,7 +425,7 @@ namespace S3D {
         auto coord = R"(
         CREATE TABLE IF NOT EXISTS coord (
             deleted INTEGER NOT NULL DEFAULT 0,
-            timestamp INTEGER NOT NULL,
+            timestamp UNSIGNED BIG INT NOT NULL,
             entity TEXT NOT NULL,
             x real NOT NULL,
             y real NOT NULL,
@@ -420,7 +436,7 @@ namespace S3D {
         auto setoperationtype = R"(
         CREATE TABLE IF NOT EXISTS setoperationtype (
             deleted INTEGER NOT NULL DEFAULT 0,
-            timestamp INTEGER NOT NULL,
+            timestamp UNSIGNED BIG INT NOT NULL,
             entity TEXT NOT NULL,
             type INTEGER NOT NULL CHECK (type = 0 or type = 1 or type = 2)
         );
@@ -429,7 +445,7 @@ namespace S3D {
         auto document = R"(
         CREATE TABLE IF NOT EXISTS document (
             deleted INTEGER NOT NULL DEFAULT 0,
-            timestamp INTEGER NOT NULL,
+            timestamp UNSIGNED BIG INT NOT NULL,
             entity TEXT NOT NULL,
             type integer NOT NULL,
             document TEXT NOT NULL
@@ -439,7 +455,7 @@ namespace S3D {
         auto name = R"(
         CREATE TABLE IF NOT EXISTS name (
             deleted INTEGER NOT NULL DEFAULT 0,
-            timestamp INTEGER NOT NULL,
+            timestamp UNSIGNED BIG INT NOT NULL,
             entity TEXT NOT NULL,
             name TEXT NOT NULL
         );

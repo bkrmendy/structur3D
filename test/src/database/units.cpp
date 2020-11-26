@@ -90,22 +90,6 @@ TEST(DatabaseImplTests, UpdateDocumentName) {
     EXPECT_EQ(db.documents().at(0).name, new_name);
 }
 
-TEST(DatabaseImplTests, ConcurrentUpdateNameChoosesLongerName) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
-
-    S3D::IDFactory factory = S3D::IDFactory();
-    auto now = S3D::TimestampFactory().timestamp();
-
-    S3D::ID document = factory();
-    S3D::ID dummy = factory();
-    db.create(dummy, S3D::NodeType::Sphere, document, now);
-    auto longer_name = S3D::Name{"Test name longer"};
-    db.upsert(document, S3D::Name{"Test document"}, now);
-    db.upsert(document, longer_name, now);
-
-    EXPECT_EQ(db.documents().at(0).name, longer_name);
-}
-
 TEST(DatabaseImplTests, ConcurrentUpdateNameChoosesLexicoGraphically) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
@@ -146,12 +130,6 @@ TEST(DatabaseImplTests, UpdateRadiusOutOfOrder) {
     db.upsert(entity, S3D::Radius{10}, 0);
 
     EXPECT_EQ(db.sphere(entity)->radius.magnitude(), 14);
-}
-
-TEST(DatabaseImplTests, PreferredNameTests) {
-    EXPECT_EQ(S3D::Name{"["}, S3D::DatabaseImpl::preferredNameOf(S3D::Name{"["}, S3D::Name{"3"}));
-    EXPECT_EQ(S3D::Name{"t"}, S3D::DatabaseImpl::preferredNameOf(S3D::Name{"Y"}, S3D::Name{"t"}));
-    EXPECT_EQ(S3D::Name{"b"}, S3D::DatabaseImpl::preferredNameOf(S3D::Name{"0"}, S3D::Name{"b"}));
 }
 
 TEST(DatabaseImplTests, RetractSphereNode) {
@@ -337,6 +315,22 @@ TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
 
 }
 
+TEST(DatabaseImplTests, OutOfOrderUpdateName) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID dummy = factory();
+    db.create(dummy, S3D::NodeType::Sphere, document, 0);
+
+    db.upsert(document, S3D::Name{"&"}, UINT64_C(9223372036854775807));
+    db.upsert(document, S3D::Name{"T"}, 0);
+
+    EXPECT_EQ(db.documents().at(0).name.get(), "&");
+
+}
+
 TEST(DatabaseImplTests, ReadEdges) {
     auto db = S3D::DatabaseImpl::inMemory(false);
     S3D::IDFactory factory = S3D::IDFactory();
@@ -374,6 +368,42 @@ TEST(DatabaseImplTests, DisconnectEdges) {
     EXPECT_EQ(db.edges(e1).size(), 1);
 
     EXPECT_EQ(db.edges(e1).at(0), e3);
+}
+
+TEST(DatabaseImplTests, ConcurrentlyConnectDisconnectEdges) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entityA = factory();
+    S3D::ID entityB = factory();
+
+    db.upsert(document, S3D::Name{"Test document"}, 0);
+    db.create(entityA, S3D::NodeType::Sphere, document, 0);
+    db.create(entityB, S3D::NodeType::Sphere, document, 0);
+
+    db.connect(entityA, entityB, 1);
+    db.disconnect(entityA, entityB, 1);
+
+    EXPECT_EQ(db.edges(entityA).size(), 1);
+}
+
+TEST(DatabaseImplTests, ConnectDisconnectOutOfOrderEdges) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entityA = factory();
+    S3D::ID entityB = factory();
+
+    db.upsert(document, S3D::Name{"Test document"}, 0);
+    db.create(entityA, S3D::NodeType::Sphere, document, 0);
+    db.create(entityB, S3D::NodeType::Sphere, document, 0);
+
+    db.disconnect(entityA, entityB, 1);
+    db.connect(entityA, entityB, 0);
+
+    EXPECT_TRUE(db.edges(entityA).empty());
 }
 
 TEST(DatabaseImplTests, DisconnectNonExistentEdges) {

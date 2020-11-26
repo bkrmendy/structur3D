@@ -135,6 +135,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
     db.create(dummy, S3D::NodeType::Sphere, document, 0);
 
     for (const auto& entry : entries){
+        RC_PRE(std::get<0>(entry) < 9223372036854775807);
         db.upsert(document, std::get<1>(entry), std::get<0>(entry));
     }
 
@@ -159,8 +160,49 @@ RC_GTEST_PROP(DatabasePropertyTests,
     RC_ASSERT(nameFromDb == latestName);
 }
 
-RC_GTEST_PROP(DatabaseImplProperties,
+RC_GTEST_PROP(DatabasePropertyTests,
               PreferredNamePredicateCommutative,
-              (S3D::Name& left, S3D::Name& right)) {
+              (const S3D::Name& left, const S3D::Name& right)) {
     RC_ASSERT(S3D::DatabaseImpl::preferredNameOf(left, right) == S3D::DatabaseImpl::preferredNameOf(right, left));
+}
+
+RC_GTEST_PROP(DatabasePropertyTests,
+              ConnectDisconnectCRDTProperty,
+              (const std::vector<std::tuple<S3D::Timestamp, bool>>& entries)) {
+    RC_PRE(entries.size() > 0);
+    auto db = S3D::DatabaseImpl::inMemory(false);
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID entityA = factory();
+    S3D::ID entityB = factory();
+
+    db.upsert(document, S3D::Name{"Test document"}, 0);
+    db.create(entityA, S3D::NodeType::Sphere, document, 0);
+    db.create(entityB, S3D::NodeType::Sphere, document, 0);
+
+    auto latestEntry = entries.at(0);
+
+    for (const auto& entry : entries) {
+        RC_PRE(std::get<0>(entry) < 9223372036854775807);
+        auto alive = std::get<1>(entry);
+        auto timestamp = std::get<0>(entry);
+        if (alive) {
+            db.connect(entityA, entityB, timestamp);
+        } else {
+            db.disconnect(entityA, entityB, timestamp);
+        }
+
+        if (timestamp > std::get<0>(latestEntry)
+            || (timestamp == std::get<0>(latestEntry) && alive)) {
+            latestEntry = entry;
+        }
+    }
+
+    auto edges = db.edges(entityA);
+    if (std::get<1>(latestEntry)) {
+        RC_ASSERT(edges.size() == 1);
+    } else {
+        RC_ASSERT(edges.empty());
+    }
 }
