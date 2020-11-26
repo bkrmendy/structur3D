@@ -14,11 +14,11 @@
 namespace S3D {
     const std::vector<std::shared_ptr<Node>> Graph::roots() const {
         std::map<std::shared_ptr<Node>, size_t> edges_in;
-        for (const auto& node : this->nodes) {
+        for (const auto& node : this->nodes_) {
             edges_in.insert(std::make_pair(node, 0));
         }
 
-        for (const auto& edge : this->edges) {
+        for (const auto& edge : this->edges_) {
             const auto& to = edge->to;
             edges_in.at(to) += 1;
         }
@@ -35,7 +35,7 @@ namespace S3D {
 
     Tree Graph::subTreeOf(const std::shared_ptr<Node>& node) const {
         std::vector<Tree> subtrees{};
-        for (const auto& edge : this->edges) {
+        for (const auto& edge : this->edges_) {
             if (edge->from->id() == node->id()) {
                 subtrees.push_back(this->subTreeOf(edge->to));
             }
@@ -49,5 +49,40 @@ namespace S3D {
             res.push_back(this->subTreeOf(root));
         }
         return res;
+    }
+
+    const std::vector<std::shared_ptr<Edge>>& Graph::edges() const {
+        return edges_;
+    }
+
+    const std::vector<std::shared_ptr<Node>>& Graph::nodes() const {
+        return nodes_;
+    }
+
+    void Graph::create(std::shared_ptr<Node> node) {
+        this->nodes_.push_back(std::move(node));
+    }
+
+    void Graph::remove(const std::shared_ptr<Node>& node) {
+        this->nodes_.erase(
+                std::remove(this->nodes_.begin(), this->nodes_.end(), node),
+                this->nodes_.end());
+
+        this->edges_.erase(
+                std::remove_if(
+                        this->edges_.begin(),
+                        this->edges_.end(),
+                        [&node](const auto& edge) { return edge->from->id() == node->id() || edge->to->id() == node->id();}),
+                this->edges_.end());
+    }
+
+    void Graph::create(std::shared_ptr<Edge> edge) {
+        this->edges_.push_back(std::move(edge));
+    }
+
+    void Graph::remove(const std::shared_ptr<Edge>& edge) {
+        this->edges_.erase(
+                std::remove(this->edges_.begin(), this->edges_.end(), edge),
+                this->edges_.end());
     }
 }

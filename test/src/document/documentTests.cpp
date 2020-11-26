@@ -84,8 +84,8 @@ TEST(DocumentTests, PropertyAccessorsOK) {
     auto doc = S3D::DocumentImpl{docId, interactor, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>()};
 
     EXPECT_EQ(doc.id(), docId);
-    EXPECT_EQ(doc.graph()->edges, edges);
-    EXPECT_EQ(doc.graph()->nodes, nodes);
+    EXPECT_EQ(doc.graph()->edges(), edges);
+    EXPECT_EQ(doc.graph()->nodes(), nodes);
 }
 
 TEST(DocumentTests, UpdateSphereRadius) {
@@ -107,7 +107,7 @@ TEST(DocumentTests, UpdateSphereRadius) {
 
     doc.update(sphere);
 
-    EXPECT_EQ(std::dynamic_pointer_cast<S3D::Sphere>(doc.graph()->nodes.at(0))->radius, new_radius);
+    EXPECT_EQ(std::dynamic_pointer_cast<S3D::Sphere>(doc.graph()->nodes().at(0))->radius, new_radius);
 }
 
 TEST(DocumentTests, UpdateSphereCoords) {
@@ -127,7 +127,7 @@ TEST(DocumentTests, UpdateSphereCoords) {
     EXPECT_CALL(*interactor, update(sphere->id(), S3D::Attribute{sphere->coord})).Times(1);
     doc.update(sphere);
 
-    auto actualCoord = std::dynamic_pointer_cast<S3D::Sphere>(doc.graph()->nodes.at(0))->coord;
+    auto actualCoord = std::dynamic_pointer_cast<S3D::Sphere>(doc.graph()->nodes().at(0))->coord;
     EXPECT_FLOAT_EQ(actualCoord.x, new_coord.x);
     EXPECT_FLOAT_EQ(actualCoord.y, new_coord.y);
     EXPECT_FLOAT_EQ(actualCoord.z, new_coord.z);
@@ -147,9 +147,6 @@ TEST(DocumentTests, CreateSetOp) {
     EXPECT_CALL(*interactor, create(setOp, docId)).Times(1);
 
     doc.create(setOp);
-
-    EXPECT_EQ(doc.graph()->nodes.size(), 1);
-    EXPECT_EQ(doc.graph()->nodes.at(0)->id(), setOp->id());
 }
 
 TEST(DocumentTests, CreateSphere) {
@@ -166,9 +163,6 @@ TEST(DocumentTests, CreateSphere) {
     EXPECT_CALL(*interactor, create(sphere, docId)).Times(1);
 
     doc.create(sphere);
-
-    EXPECT_EQ(doc.graph()->nodes.size(), 1);
-    EXPECT_EQ(doc.graph()->nodes.at(0)->id(), sphere->id());
 }
 
 TEST(DocumentTests, RemoveSetOp) {
@@ -190,9 +184,6 @@ TEST(DocumentTests, RemoveSetOp) {
     EXPECT_CALL(*interactor, remove(unionNode, docId));
 
     doc.remove(unionNode);
-
-    EXPECT_EQ(doc.graph()->nodes.size(), 2);
-    EXPECT_TRUE(doc.graph()->edges.empty());
 }
 
 TEST(DocumentTests, RemoveSphere) {
@@ -214,11 +205,6 @@ TEST(DocumentTests, RemoveSphere) {
     EXPECT_CALL(*interactor, remove(sphere1, docId));
 
     doc.remove(sphere1);
-
-    EXPECT_EQ(doc.graph()->nodes.size(), 2);
-    EXPECT_EQ(doc.graph()->edges.size(), 1);
-    EXPECT_EQ(doc.graph()->edges.at(0)->from->id(), unionNode->id());
-    EXPECT_EQ(doc.graph()->edges.at(0)->to->id(), sphere2->id());
 }
 
 TEST(DocumentTest, CreateEdge) {
@@ -238,11 +224,6 @@ TEST(DocumentTest, CreateEdge) {
     EXPECT_CALL(*interactor, connect(unionNode->id(), sphere1->id())).Times(1);
 
     doc.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1));
-
-    EXPECT_EQ(doc.graph()->nodes.size(), 3);
-    EXPECT_EQ(doc.graph()->edges.size(), 1);
-    EXPECT_EQ(doc.graph()->edges.at(0)->from, unionNode);
-    EXPECT_EQ(doc.graph()->edges.at(0)->to, sphere1);
 }
 
 TEST(DocumentTest, RemoveEdge) {
@@ -264,10 +245,5 @@ TEST(DocumentTest, RemoveEdge) {
     EXPECT_CALL(*interactor, disconnect(unionNode->id(), sphere1->id()));
 
     doc.remove(edges.at(0));
-
-    EXPECT_EQ(doc.graph()->nodes.size(), 3);
-    EXPECT_EQ(doc.graph()->edges.size(), 1);
-    EXPECT_EQ(doc.graph()->edges.at(0)->from, unionNode);
-    EXPECT_EQ(doc.graph()->edges.at(0)->to, sphere2);
 
 }

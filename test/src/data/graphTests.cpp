@@ -13,7 +13,7 @@
 #include <data/Sphere.h>
 #include <data/Graph.h>
 
-TEST(GraphTests, TestAllIsolated) {
+TEST(GraphTests, TestGenerateTreeAllIsolated) {
     auto makeId = S3D::IDFactory();
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
     auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
@@ -34,7 +34,7 @@ TEST(GraphTests, TestAllIsolated) {
     }
 }
 
-TEST(GraphTests, TestSingleRoot) {
+TEST(GraphTests, TestGenerateTreeSingleRoot) {
     auto makeId = S3D::IDFactory();
 
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
@@ -61,7 +61,7 @@ TEST(GraphTests, TestSingleRoot) {
     EXPECT_EQ(graph.subTreeOf(sphere2).children.size(), 0);
 }
 
-TEST(GraphTests, MultipleRoots) {
+TEST(GraphTests, TestGenerateTreeMultipleRoots) {
     auto makeId = S3D::IDFactory();
 
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
@@ -82,4 +82,91 @@ TEST(GraphTests, MultipleRoots) {
     EXPECT_EQ(graph.subTreeOf(unionNode).children.at(0).node, sphere1);
 
     EXPECT_EQ(graph.subTreeOf(sphere2).children.size(), 0);
+}
+
+TEST(GraphTests, TestCreateNode) {
+    S3D::Graph g{{}, {}};
+    auto makeId = S3D::IDFactory();
+    auto node = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{9});
+    g.create(node);
+
+    EXPECT_TRUE(g.edges().empty());
+    EXPECT_EQ(g.nodes().size(), 1);
+    EXPECT_EQ(g.nodes().at(0), node);
+}
+
+TEST(GraphTests, TestRemoveNode) {
+    S3D::Graph g{{}, {}};
+    auto makeId = S3D::IDFactory();
+    auto node = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{9});
+    g.create(node);
+
+    EXPECT_TRUE(g.edges().empty());
+    EXPECT_EQ(g.nodes().size(), 1);
+    EXPECT_EQ(g.nodes().at(0), node);
+
+    g.remove(node);
+
+    EXPECT_TRUE(g.edges().empty());
+    EXPECT_TRUE(g.nodes().empty());
+}
+
+TEST(GraphTests, TestRemoveRootNode) {
+    S3D::Graph g{{}, {}};
+    auto makeId = S3D::IDFactory();
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1, 2, 3}, S3D::Radius{9});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{3, 4, 5}, S3D::Radius{3});
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+
+    g.create(unionNode);
+    g.create(sphere1);
+    g.create(sphere2);
+
+    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1));
+    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2));
+
+    g.remove(unionNode);
+
+    EXPECT_TRUE(g.edges().empty());
+    EXPECT_EQ(g.nodes().size(), 2);
+}
+
+TEST(GraphTests, TestCreateEdge) {
+    S3D::Graph g{{}, {}};
+    auto makeId = S3D::IDFactory();
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1, 2, 3}, S3D::Radius{9});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{3, 4, 5}, S3D::Radius{3});
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+
+    g.create(unionNode);
+    g.create(sphere1);
+    g.create(sphere2);
+
+    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1));
+    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2));
+
+    EXPECT_EQ(g.nodes().size(), 3);
+    EXPECT_EQ(g.edges().size(), 2);
+}
+
+TEST(GraphTests, TestRemoveEdge) {
+    S3D::Graph g{{}, {}};
+    auto makeId = S3D::IDFactory();
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1, 2, 3}, S3D::Radius{9});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{3, 4, 5}, S3D::Radius{3});
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+
+    auto e1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
+
+    g.create(unionNode);
+    g.create(sphere1);
+    g.create(sphere2);
+
+    g.create(e1);
+    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2));
+
+    g.remove(e1);
+
+    EXPECT_EQ(g.nodes().size(), 3);
+    EXPECT_EQ(g.edges().size(), 1);
 }

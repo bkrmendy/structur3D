@@ -134,10 +134,10 @@ TEST(ViewModelTests, OpenDocument) {
 
     const auto& currentDoc = vm->document();
     EXPECT_EQ(currentDoc->id(), dummyDocId);
-    EXPECT_EQ(currentDoc->graph()->edges.size(), 2);
-    EXPECT_EQ(currentDoc->graph()->nodes.size(), 3);
-    EXPECT_EQ(currentDoc->graph()->edges.at(0)->from->id(), unionID);
-    EXPECT_EQ(currentDoc->graph()->edges.at(1)->from->id(), unionID);
+    EXPECT_EQ(currentDoc->graph()->edges().size(), 2);
+    EXPECT_EQ(currentDoc->graph()->nodes().size(), 3);
+    EXPECT_EQ(currentDoc->graph()->edges().at(0)->from->id(), unionID);
+    EXPECT_EQ(currentDoc->graph()->edges().at(1)->from->id(), unionID);
 
     vm->db_.reset();
     vm->network_.reset();

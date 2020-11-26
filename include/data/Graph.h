@@ -18,18 +18,25 @@
 
 namespace S3D {
 
-struct Graph {
+class Graph {
+    std::vector<std::shared_ptr<Edge>> edges_;
+    std::vector<std::shared_ptr<Node>> nodes_;
+public:
+    Graph(std::vector<std::shared_ptr<Edge>> edges, std::vector<std::shared_ptr<Node>> nodes)
+        : edges_{std::move(edges)}, nodes_{std::move(nodes)} { }
+
     const std::vector<std::shared_ptr<Node>> roots() const;
     Tree subTreeOf(const std::shared_ptr<Node>& node) const;
-
-    std::vector<std::shared_ptr<Edge>> edges;
-    std::vector<std::shared_ptr<Node>> nodes;
-
-    Graph(std::vector<std::shared_ptr<Edge>> edges, std::vector<std::shared_ptr<Node>> nodes)
-        : edges{std::move(edges)}, nodes{std::move(nodes)} { }
-
     const std::vector<Tree> trees() const;
 
+    const std::vector<std::shared_ptr<Edge>>& edges() const;
+    const std::vector<std::shared_ptr<Node>>& nodes() const;
+
+    void create(std::shared_ptr<Node> node);
+    void remove(const std::shared_ptr<Node>& node);
+
+    void create(std::shared_ptr<Edge> edge);
+    void remove(const std::shared_ptr<Edge>& edge);
 };
 
 }
