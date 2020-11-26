@@ -88,6 +88,22 @@ TEST(DatabaseImplTests, UpdateDocumentName) {
     EXPECT_EQ(db.documents().at(0).name, new_name);
 }
 
+TEST(DatabaseImplTests, ConcurrentUpdateNameChoosesLongerName) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
+
+    S3D::ID document = factory();
+    S3D::ID dummy = factory();
+    db.create(dummy, S3D::NodeType::Sphere, document, now);
+    std::string longer_name = "Test name longer";
+    db.upsert(document, "Test name", now);
+    db.upsert(document, longer_name, now);
+
+    EXPECT_EQ(db.documents().at(0).name, longer_name);
+}
+
 TEST(DatabaseImplTests, RetractSphereNode) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 

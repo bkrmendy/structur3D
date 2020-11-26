@@ -111,3 +111,37 @@ RC_GTEST_PROP(DatabasePropertyTests,
               RC_ASSERT(approximatelyEqual(coordFromDb.y, farthestCoord.y, 1));
               RC_ASSERT(approximatelyEqual(coordFromDb.z, farthestCoord.z, 1));
 }
+
+RC_GTEST_PROP(DatabasePropertyTests,
+              NameCRDTProperty,
+              (const std::vector<std::tuple<S3D::Timestamp, std::string>>& entries)) {
+    RC_PRE(entries.size() > 0);
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID document = factory();
+    S3D::ID dummy = factory();
+    db.create(dummy, S3D::NodeType::Sphere, document, 0);
+
+    for (const auto& entry : entries){
+        RC_PRE(std::get<1>(entry).size() > 0);
+        db.upsert(document, std::get<1>(entry), std::get<0>(entry));
+    }
+
+    const auto nameFromDb = db.documents().at(0).name;
+
+    auto latestEntry = std::max_element(entries.begin(), entries.end(), [](const auto& a, const auto& b) {
+        if (std::get<0>(a) == std::get<0>(b)) {
+            if (std::get<1>(a).size() == std::get<1>(b).size()) {
+                return std::get<1>(a) < std::get<1>(b);
+            }
+            return std::get<1>(a).size() < std::get<1>(b).size();
+        }
+        return std::get<0>(a) < std::get<0>(b);
+    });
+
+    const auto& latestName = std::get<1>(*latestEntry);
+
+    RC_ASSERT(nameFromDb == latestName);
+}

@@ -224,23 +224,44 @@ namespace S3D {
 
         std::vector<DocumentWithName> names{};
 
-        for (const auto& uid : db->operator()(docLookup)) {
+        for (const auto& uid : (*db)(docLookup)) {
             Schema::Name name;
             auto nameLookup
-                = dynamic_select(*db)
-                    .columns(name.name)
-                    .from(name)
-                    .where(name.deleted == 0 && name.entity == uid.document)
-                    .order_by(name.timestamp.desc())
-                    .limit(1U);
+                = (*db)(select(name.name, name.timestamp)
+                        .from(name)
+                        .where(name.deleted == 0 && name.entity == uid.document));
 
-            auto mayBeName = this->db->operator()(nameLookup);
+            if (!nameLookup.empty()) {
+                std::string latestName = nameLookup.front().name;
+                Timestamp latestTimestamp = nameLookup.front().timestamp;
+                for (const auto &row : nameLookup) {
+                    std::string this_name = std::string(row.name);
+                    Timestamp this_timestamp = row.timestamp;
 
-            if (not mayBeName.empty()) {
+                    if (latestTimestamp < this_timestamp) {
+                        /// Choose row with latest timestamp
+                        latestName = this_name;
+                        latestTimestamp = this_timestamp;
+                    } else if (latestTimestamp == this_timestamp
+                                && latestName.size() < this_name.size()) {
+                        /// In case of concurrent modification, choose longer name
+                        latestName = this_name;
+                        latestTimestamp = this_timestamp;
+                    } else if (latestTimestamp == this_timestamp
+                               && this_name.size() == latestName.size()
+                               && latestName < this_name) {
+                        /// In case of concurrent modification and equal lengths, compare lexicographically
+                        latestName = this_name;
+                        latestTimestamp = this_timestamp;
+                    } else {
+                        /// No update
+                    }
+                }
+
                 std::stringstream stream{uid.document};
                 ID uid_temp;
                 stream >> uid_temp;
-                names.emplace_back(uid_temp, mayBeName.front().name);
+                names.emplace_back(uid_temp, latestName);
             }
         }
 
