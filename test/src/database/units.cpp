@@ -7,6 +7,7 @@
 #include "rapidcheck.h"
 
 #include "data/Base.h"
+#include "data/Name.h"
 #include "db/DatabaseImpl.h"
 
 TEST(DatabaseImplTests, TotallyNewDB){
@@ -27,7 +28,7 @@ TEST(DatabaseImplTests, CreateSphere) {
 
     auto now = S3D::TimestampFactory().timestamp();
 
-    db.upsert(document, "Test document", now);
+    db.upsert(document, S3D::Name{"Test document"}, now);
 
     db.create(entity, S3D::NodeType::Sphere, document, now);
     db.upsert(entity, coord, now);
@@ -56,7 +57,7 @@ TEST(DatabaseImplTests, CreateSetOpNode) {
     auto type = S3D::NodeType::SetOperation;
     auto setop = S3D::SetOperationType::Intersection;
 
-    db.upsert(document, "Test document", now);
+    db.upsert(document, S3D::Name{"Test document"}, now);
 
     db.create(entity, type, document, now);
     db.upsert(entity, setop, now);
@@ -74,16 +75,17 @@ TEST(DatabaseImplTests, UpdateDocumentName) {
     auto db = S3D::DatabaseImpl::inMemory(false);
 
     S3D::IDFactory factory = S3D::IDFactory();
-    auto now = S3D::TimestampFactory().timestamp();
 
     S3D::ID document = factory();
     S3D::ID dummy = factory();
-    db.create(dummy, S3D::NodeType::Sphere, document, now);
-    db.upsert(document, "Test name", now);
+    db.create(dummy, S3D::NodeType::Sphere, document, 0);
+    db.upsert(document, S3D::Name{"Test document"}, 0);
 
-    auto new_name = "Test name 2";
-
-    db.upsert(document, new_name, now + 3);
+    auto new_name = S3D::Name{"Test name 2"};
+    db.upsert(document, S3D::Name{"djlakdj"}, 2);
+    db.upsert(document, S3D::Name{"dfjaslkfjasld;"}, 3);
+    db.upsert(document, S3D::Name{"fjldafjalkf"}, 4);
+    db.upsert(document, new_name, 5);
 
     EXPECT_EQ(db.documents().at(0).name, new_name);
 }
@@ -97,11 +99,34 @@ TEST(DatabaseImplTests, ConcurrentUpdateNameChoosesLongerName) {
     S3D::ID document = factory();
     S3D::ID dummy = factory();
     db.create(dummy, S3D::NodeType::Sphere, document, now);
-    std::string longer_name = "Test name longer";
-    db.upsert(document, "Test name", now);
+    auto longer_name = S3D::Name{"Test name longer"};
+    db.upsert(document, S3D::Name{"Test document"}, now);
     db.upsert(document, longer_name, now);
 
     EXPECT_EQ(db.documents().at(0).name, longer_name);
+}
+
+TEST(DatabaseImplTests, ConcurrentUpdateNameChoosesLexicoGraphically) {
+    auto db = S3D::DatabaseImpl::inMemory(false);
+
+    S3D::IDFactory factory = S3D::IDFactory();
+    auto now = S3D::TimestampFactory().timestamp();
+
+    S3D::ID document = factory();
+    S3D::ID dummy = factory();
+    db.create(dummy, S3D::NodeType::Sphere, document, now);
+    auto q = S3D::Name{"Q"};
+    auto at = S3D::Name{"@"};
+    db.upsert(document, q, now);
+    db.upsert(document, at, now);
+
+    EXPECT_EQ(db.documents().at(0).name, at);
+}
+
+TEST(DatabaseImplTests, PreferredNameTests) {
+    EXPECT_EQ(S3D::Name{"["}, S3D::DatabaseImpl::preferredNameOf(S3D::Name{"["}, S3D::Name{"3"}));
+    EXPECT_EQ(S3D::Name{"t"}, S3D::DatabaseImpl::preferredNameOf(S3D::Name{"Y"}, S3D::Name{"t"}));
+    EXPECT_EQ(S3D::Name{"b"}, S3D::DatabaseImpl::preferredNameOf(S3D::Name{"0"}, S3D::Name{"b"}));
 }
 
 TEST(DatabaseImplTests, RetractSphereNode) {
@@ -115,7 +140,7 @@ TEST(DatabaseImplTests, RetractSphereNode) {
     S3D::Coord coord = S3D::Coord{1,2,3};
     auto radius = S3D::Radius{5};
 
-    db.upsert(document, "Test document", now);
+    db.upsert(document, S3D::Name{"Test document"}, now);
 
     db.create(entity, S3D::NodeType::Sphere, document, now);
     db.upsert(entity, coord, now);
@@ -140,7 +165,7 @@ TEST(DatabaseImplTests, RetractSetNode) {
     auto type = S3D::NodeType::SetOperation;
     auto setop = S3D::SetOperationType::Intersection;
 
-    db.upsert(document, "Test document", now);
+    db.upsert(document, S3D::Name{"Test document"}, now);
 
     db.create(entity, type, document, now);
     db.upsert(entity, setop, now);
@@ -178,7 +203,7 @@ TEST(DatabaseImplTests, LookupSphereWithoutCoord) {
     S3D::ID entity = factory();
     auto radius = S3D::Radius{5};
 
-    db.upsert(document, "Test document", now);
+    db.upsert(document, S3D::Name{"Test document"}, now);
 
     db.create(entity, S3D::NodeType::Sphere, document, now);
     db.upsert(entity, radius, now);
@@ -196,7 +221,7 @@ TEST(DatabaseImplTests, LookupSphereWithoutRadius) {
     S3D::ID entity = factory();
     auto coord = S3D::Coord{1,2,3};
 
-    db.upsert(document, "Test document", now);
+    db.upsert(document, S3D::Name{"Test document"}, now);
 
     db.create(entity, S3D::NodeType::Sphere, document, now);
     db.upsert(entity, coord, now);
@@ -214,7 +239,7 @@ TEST(DatabaseImplTests, LookUpIncompleteSetNode) {
     S3D::ID entity = factory();
     auto type = S3D::NodeType::SetOperation;
 
-    db.upsert(document, "Test document", now);
+    db.upsert(document, S3D::Name{"Test document"}, now);
 
     db.create(entity, type, document, now);
 
@@ -240,7 +265,7 @@ TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
     auto now = S3D::TimestampFactory().timestamp();
 
     auto document = makeID();
-    db.upsert(document, "Test Document", now);
+    db.upsert(document, S3D::Name{"Test document"}, now);
 
     auto unionNode = makeID();
     db.create(unionNode, S3D::NodeType::SetOperation, document, now);

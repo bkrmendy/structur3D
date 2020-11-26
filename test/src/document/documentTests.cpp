@@ -24,8 +24,8 @@ namespace S3D {
         MOCK_METHOD(void, upsert, (const ID&, const SetOperationType&, Timestamp timestamp), (override));
         MOCK_METHOD(void, retract, (const ID&, const SetOperationType&, Timestamp timestamp), (override));
 
-        MOCK_METHOD(void, upsert, (const ID&, const std::string& name, Timestamp timestamp), (override));
-        MOCK_METHOD(void, retract, (const ID&, const std::string& name, Timestamp timestamp), (override));
+        MOCK_METHOD(void, upsert, (const ID&, const Name& name, Timestamp timestamp), (override));
+        MOCK_METHOD(void, retract, (const ID&, const Name& name, Timestamp timestamp), (override));
 
         MOCK_METHOD(void, connect, (const ID&, const ID&, Timestamp timestamp), (override));
         MOCK_METHOD(void, disconnect, (const ID&, const ID&, Timestamp timestamp), (override));

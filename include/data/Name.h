@@ -6,6 +6,7 @@
 #define STRUCTUR3D_BASE_NAME_H
 
 #include <string>
+#include <iostream>
 
 namespace S3D {
     class Name {
@@ -18,6 +19,10 @@ namespace S3D {
         const std::string& get() const;
 
     };
+
+    bool operator==(const Name& left, const Name& right);
+    bool operator<(const Name& left, const Name& right);
+    std::ostream& operator<<(std::ostream& os, const Name& name);
 }
 
 #endif //STRUCTUR3D_BASE_NAME_H

@@ -42,6 +42,8 @@ public:
     static std::vector<std::string> tables();
     static std::vector<std::string> indices();
 
+    static Name preferredNameOf(const Name& left, const Name& right);
+
     explicit DatabaseImpl(std::unique_ptr<sql::connection> db) : db{std::move(db)} {
         for (const auto& column : DatabaseImpl::tables()) {
             this->db->execute(column);
@@ -51,8 +53,6 @@ public:
             this->db->execute(index);
         }
     }
-
-    constexpr int is_deleted(bool deleted) { return deleted ? 1 : 0; }
 
     void upsertI(const ID& entity, const Coord& coord, Timestamp timestamp, bool deleted);
 

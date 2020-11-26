@@ -24,8 +24,8 @@ namespace S3D {
         MOCK_METHOD(void, upsert, (const ID&, const SetOperationType&, Timestamp timestamp), (override));
         MOCK_METHOD(void, retract, (const ID&, const SetOperationType&, Timestamp timestamp), (override));
 
-        MOCK_METHOD(void, upsert, (const ID&, const std::string& name, Timestamp timestamp), (override));
-        MOCK_METHOD(void, retract, (const ID&, const std::string& name, Timestamp timestamp), (override));
+        MOCK_METHOD(void, upsert, (const ID&, const Name& name, Timestamp timestamp), (override));
+        MOCK_METHOD(void, retract, (const ID&, const Name& name, Timestamp timestamp), (override));
 
         MOCK_METHOD(void, connect, (const ID&, const ID&, Timestamp timestamp), (override));
         MOCK_METHOD(void, disconnect, (const ID&, const ID&, Timestamp timestamp), (override));
@@ -56,7 +56,7 @@ TEST(ViewModelTests, BrandNewViewModel) {
     std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
     auto makeID = S3D::IDFactory();
 
-    std::vector<S3D::DocumentWithName> docs = {{ makeID(), "Doc 1" }, { makeID(), "Doc 2" }};
+    std::vector<S3D::DocumentWithName> docs = {{ makeID(), S3D::Name{"Doc 1"} }, { makeID(), S3D::Name{"Doc 2"} }};
 
     ON_CALL(*mockDB, documents())
             .WillByDefault(Return(docs));
@@ -86,7 +86,7 @@ TEST(ViewModelTests, CreateDocument) {
 
     EXPECT_TRUE(vm->documents().empty());
 
-    auto name = "Test Document";
+    auto name = S3D::Name{"Test Document"};
 
     vm->createDocument(name);
     EXPECT_EQ(vm->documents().size(), 1);

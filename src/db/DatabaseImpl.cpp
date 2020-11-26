@@ -7,6 +7,7 @@
 //
 
 #include <string>
+#include <iostream>
 
 #include "db/DatabaseImpl.h"
 #include "generated/tables.h"
@@ -15,23 +16,38 @@
 
 #include "boost/uuid/uuid_io.hpp"
 
+#include <sqlpp11/sqlpp11.h>
 #include "sqlpp11/remove.h"
 #include "sqlpp11/insert.h"
 #include "sqlpp11/transaction.h"
 #include "sqlpp11/select.h"
 
 namespace S3D {
+    constexpr int is_deleted(bool deleted) { return deleted ? 1 : 0; }
+
+    template <typename Table>
+    auto LastWriterWinsTimestamp(Table table, const std::string& eid) {
+        return select(max(table.timestamp))
+                .from(table)
+                .where(table.deleted == is_deleted(false)
+                        && table.entity == eid)
+                .group_by(table.timestamp);
+    }
+
+    template<typename Table>
+    auto CRDTCollectGarbage(Table table, const std::string& eid, Timestamp timestamp) {
+        return remove_from(table)
+                .where(table.entity == eid
+                       && table.timestamp <= timestamp
+                       || table.deleted == is_deleted(true));
+    }
 
     void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Coord removeCoord;
-        (*db)(
-            remove_from(removeCoord)
-                .where(removeCoord.entity == eid
-                       && removeCoord.timestamp <= timestamp
-                       || removeCoord.deleted == is_deleted(true)));
+        (*db)(CRDTCollectGarbage(removeCoord, eid, timestamp));
 
         Schema::Coord insertCoord;
         (*db)(
@@ -51,11 +67,7 @@ namespace S3D {
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Setoperationtype removeOp;
-        this->db->operator()(
-            remove_from(removeOp)
-                .where(removeOp.entity == eid
-                       && removeOp.timestamp <= timestamp
-                       || removeOp.deleted == 1));
+        (*db)(CRDTCollectGarbage(removeOp, eid, timestamp));
 
         Schema::Setoperationtype insertOp;
         auto typeAsInteger = from_operationType(type);
@@ -74,11 +86,7 @@ namespace S3D {
 
         auto tx = sqlpp::start_transaction(*db);
         Schema::Name removeName;
-        this->db->operator()(
-                remove_from(removeName)
-                        .where(removeName.entity == eid
-                               && removeName.timestamp <= timestamp
-                               || removeName.deleted == 1));
+        (*db)(CRDTCollectGarbage(removeName, eid, timestamp));
 
         Schema::Name insertName;
         this->db->operator()(
@@ -87,6 +95,8 @@ namespace S3D {
                          insertName.timestamp = timestamp,
                          insertName.deleted = is_deleted(deleted),
                          insertName.name = name.get()));
+
+        std::cout << timestamp << ": " << name.get() << std::endl;
 
         tx.commit();
     }
@@ -102,7 +112,7 @@ namespace S3D {
                 .where(removeEdge.entity == eid
                        && removeEdge.entityTo == eid_to
                        && removeEdge.timestamp < timestamp
-                       || removeEdge.deleted == 1));
+                       || removeEdge.deleted == is_deleted(true)));
 
         Schema::Edge insertEdge;
         this->db->operator()(
@@ -127,7 +137,7 @@ namespace S3D {
                 .where(removeDoc.entity == eid
                        && removeDoc.document == doc
                        && removeDoc.timestamp < timestamp
-                       || removeDoc.deleted == 1));
+                       || removeDoc.deleted == is_deleted(true)));
 
         Schema::Document updateDoc;
         this->db->operator()(
@@ -155,11 +165,7 @@ namespace S3D {
         auto tx = sqlpp::start_transaction(*db);
 
         Schema::Radius removeRadius;
-        (*db)(
-            remove_from(removeRadius)
-                .where(removeRadius.entity == eid
-                       && removeRadius.timestamp <= timestamp
-                       || removeRadius.deleted == is_deleted(true)));
+        CRDTCollectGarbage(removeRadius, eid, timestamp);
 
         Schema::Radius insertRadius;
         (*db)(
@@ -215,53 +221,35 @@ namespace S3D {
     std::vector<DocumentWithName> DatabaseImpl::documents() {
         Schema::Document doc;
         auto docLookup =
-            dynamic_select(*db)
-                .columns(doc.document)
-                .flags(sqlpp::distinct)
-                .from(doc)
-                .where(doc.deleted == 0)
-                .group_by(doc.document);
+                select(doc.document)
+                        .flags(sqlpp::distinct)
+                        .from(doc)
+                        .where(doc.deleted == is_deleted(false))
+                        .group_by(doc.document);
 
         std::vector<DocumentWithName> names{};
 
-        for (const auto& uid : (*db)(docLookup)) {
-            Schema::Name name;
+        for (const auto& documentRow : (*db)(docLookup)) {
+            Schema::Name nameTable;
             auto nameLookup
-                = (*db)(select(name.name, name.timestamp)
-                        .from(name)
-                        .where(name.deleted == 0 && name.entity == uid.document));
+                = (*db)(select(nameTable.name)
+                        .from(nameTable)
+                        .where(nameTable.deleted == is_deleted(false)
+                                && nameTable.entity == documentRow.document
+                                && nameTable.timestamp == LastWriterWinsTimestamp(nameTable, documentRow.document)));
 
             if (!nameLookup.empty()) {
-                std::string latestName = nameLookup.front().name;
-                Timestamp latestTimestamp = nameLookup.front().timestamp;
-                for (const auto &row : nameLookup) {
-                    std::string this_name = std::string(row.name);
-                    Timestamp this_timestamp = row.timestamp;
+                auto latestName = Name{nameLookup.front().name};
 
-                    if (latestTimestamp < this_timestamp) {
-                        /// Choose row with latest timestamp
-                        latestName = this_name;
-                        latestTimestamp = this_timestamp;
-                    } else if (latestTimestamp == this_timestamp
-                                && latestName.size() < this_name.size()) {
-                        /// In case of concurrent modification, choose longer name
-                        latestName = this_name;
-                        latestTimestamp = this_timestamp;
-                    } else if (latestTimestamp == this_timestamp
-                               && this_name.size() == latestName.size()
-                               && latestName < this_name) {
-                        /// In case of concurrent modification and equal lengths, compare lexicographically
-                        latestName = this_name;
-                        latestTimestamp = this_timestamp;
-                    } else {
-                        /// No update
-                    }
+                for (const auto& row : nameLookup) {
+                    std::cout << row.name << std::endl;
+                    latestName = DatabaseImpl::preferredNameOf(latestName, Name{row.name});
                 }
 
-                std::stringstream stream{uid.document};
+                std::stringstream stream{documentRow.document};
                 ID uid_temp;
                 stream >> uid_temp;
-                names.emplace_back(uid_temp, Name{latestName});
+                names.emplace_back(uid_temp, latestName);
             }
         }
 
@@ -292,14 +280,6 @@ namespace S3D {
         return res;
     }
 
-    template <typename Table>
-    auto latestTimeStampQuery(Table table, const std::string& eid) {
-        return select(max(table.timestamp))
-                    .from(table)
-                    .where(table.deleted == 0 && table.entity == eid)
-                    .group_by(table.timestamp);
-    }
-
     std::vector<ID> DatabaseImpl::edges(const ID &of_entity) {
         std::string eid = to_string(of_entity);
         Schema::Edge edge;
@@ -327,7 +307,8 @@ namespace S3D {
         auto lookup
             = (*db)(select(documentLookup.entity)
                         .from(documentLookup)
-                        .where(documentLookup.deleted == 0 && documentLookup.entity == eid)
+                        .where(documentLookup.deleted == is_deleted(false)
+                                && documentLookup.entity == eid)
                         .order_by(documentLookup.timestamp.desc())
                         .limit(1U));
 
@@ -337,34 +318,30 @@ namespace S3D {
 
         Schema::Radius radiusTable;
         auto radiusRes
-            = (*db)(select(radiusTable.magnitude, radiusTable.timestamp)
+            = (*db)(select(radiusTable.magnitude)
                         .from(radiusTable)
                         .where(radiusTable.deleted == 0
-                                && radiusTable.entity == eid));
+                                && radiusTable.entity == eid
+                                && radiusTable.timestamp == LastWriterWinsTimestamp(radiusTable, eid)));
 
         if (radiusRes.empty()) {
             return std::nullopt;
         }
 
-        auto maxTimestamp = radiusRes.front().timestamp;
         float maxRadius = radiusRes.front().magnitude;
         for (const auto& radius : radiusRes) {
-            if (radius.timestamp == maxTimestamp
-                && radius.magnitude > maxRadius) {
+            if (radius.magnitude > maxRadius) {
                 maxRadius = radius.magnitude;
-                maxTimestamp = radius.timestamp;
-            } else if (radius.timestamp > maxTimestamp) {
-                maxRadius = radius.magnitude;
-                maxTimestamp = radius.timestamp;
             }
         }
 
         Schema::Coord coordTable;
         auto coordRes
-            = (*db)(select(coordTable.x, coordTable.y, coordTable.z, coordTable.timestamp)
+            = (*db)(select(coordTable.x, coordTable.y, coordTable.z)
                 .from(coordTable)
                 .where(coordTable.deleted == 0
-                        && coordTable.entity == eid));
+                        && coordTable.entity == eid
+                        && coordTable.timestamp == LastWriterWinsTimestamp(coordTable, eid)));
 
         if (coordRes.empty()) {
             return std::nullopt;
@@ -374,19 +351,13 @@ namespace S3D {
                                     (float)coordRes.front().y,
                                     (float)coordRes.front().z};
 
-        auto maxCoordTimestamp = coordRes.front().timestamp;
         for (const auto& row : coordRes) {
             auto coord = Coord{(float)row.x,
                                (float)row.y,
                                (float)row.z};
 
-            if (maxCoordTimestamp == row.timestamp
-                && distance_from_origin(coord) > distance_from_origin(farthestCoord)) {
+            if (distance_from_origin(coord) > distance_from_origin(farthestCoord)) {
                 farthestCoord = coord;
-                maxCoordTimestamp = row.timestamp;
-            } else if (row.timestamp > maxCoordTimestamp) {
-                farthestCoord = coord;
-                maxCoordTimestamp = row.timestamp;
             }
         }
 
@@ -490,6 +461,21 @@ namespace S3D {
         auto name = "CREATE INDEX name_index ON name(entity);";
 
         return { edges, radius, coord, setOpType, document, name };
+    }
+
+    Name DatabaseImpl::preferredNameOf(const Name &left, const Name &right) {
+        if (left.get().size() < right.get().size()) {
+            /// In case of concurrent modification, choose longer name
+            return right;
+        }
+        if (left.get().size() == left.get().size()) {
+            /// In case of concurrent modification and equal lengths, compare lexicographically
+            if (left.get() < right.get()) {
+                return right;
+            }
+        }
+
+        return left;
     }
 }
 

@@ -7,9 +7,11 @@
 #include "data/Name.h"
 
 namespace S3D {
-    std::string Name::allowedCharacters = "1234567890qwertyuiopasdfghjklzxcvbnm /.,'\"";
+    /// https://stackoverflow.com/a/15736518
+    std::string Name::allowedCharacters = R"( !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~)";
 
     Name::Name(const std::string& name) {
+        assert(!name.empty());
         std::set<char> allowedChars{allowedCharacters.begin(), allowedCharacters.end()};
         for (const auto& chr : name) {
             assert(allowedChars.count(chr) > 0);
@@ -19,5 +21,17 @@ namespace S3D {
 
     const std::string &Name::get() const {
         return value_;
+    }
+
+    bool operator==(const Name& left, const Name& right) {
+        return left.get() == right.get();
+    }
+
+    bool operator<(const Name& left, const Name& right) {
+        return left.get() < right.get();
+    }
+
+    std::ostream& operator<<(std::ostream& os, const Name& name) {
+        return os << name.get();
     }
 }

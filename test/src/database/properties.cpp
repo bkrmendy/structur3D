@@ -20,6 +20,16 @@ namespace rc {
                     gen::set(&S3D::Coord::z, gen::inRange(0, 1'000)));
         }
     };
+
+    template<>
+    struct Arbitrary<S3D::Name> {
+        static Gen<S3D::Name> arbitrary() {
+            return gen::construct<S3D::Name>(
+                    gen::nonEmpty(
+                            gen::container<std::string>(
+                                    gen::elementOf(S3D::Name::allowedCharacters))));
+        }
+    };
 }
 
 /// https://stackoverflow.com/a/253874
@@ -34,7 +44,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
               std::vector<
                       std::tuple<
                               S3D::Timestamp,
-                              float>>>(rc::gen::tuple(rc::gen::arbitrary<S3D::Timestamp>(), rc::gen::inRange(0, 1'000'000)));
+                              float>>>(rc::gen::tuple(rc::gen::arbitrary<S3D::Timestamp>(), rc::gen::positive<float>()));
       RC_PRE(entries.size() > 0);
       auto db = S3D::DatabaseImpl::inMemory(false);
 
@@ -44,7 +54,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
       S3D::ID entity = factory();
       S3D::Coord coord = S3D::Coord{1,2,3};
 
-      db.upsert(document, "Test document", 0);
+      db.upsert(document, S3D::Name{"Test document"}, 0);
 
       db.create(entity, S3D::NodeType::Sphere, document, 0);
       db.upsert(entity, coord, 0);
@@ -80,7 +90,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
               S3D::ID entity = factory();
               auto radius = S3D::Radius{5};
 
-              db.upsert(document, "Test document", 0);
+              db.upsert(document, S3D::Name{"Test document"}, 0);
 
               db.create(entity, S3D::NodeType::Sphere, document, 0);
               db.upsert(entity, radius, 0);
@@ -114,7 +124,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
 
 RC_GTEST_PROP(DatabasePropertyTests,
               NameCRDTProperty,
-              (const std::vector<std::tuple<S3D::Timestamp, std::string>>& entries)) {
+              (const std::vector<std::tuple<S3D::Timestamp, S3D::Name>>& entries)) {
     RC_PRE(entries.size() > 0);
     auto db = S3D::DatabaseImpl::inMemory(false);
 
@@ -125,23 +135,32 @@ RC_GTEST_PROP(DatabasePropertyTests,
     db.create(dummy, S3D::NodeType::Sphere, document, 0);
 
     for (const auto& entry : entries){
-        RC_PRE(std::get<1>(entry).size() > 0);
         db.upsert(document, std::get<1>(entry), std::get<0>(entry));
     }
 
     const auto nameFromDb = db.documents().at(0).name;
 
-    auto latestEntry = std::max_element(entries.begin(), entries.end(), [](const auto& a, const auto& b) {
-        if (std::get<0>(a) == std::get<0>(b)) {
-            if (std::get<1>(a).size() == std::get<1>(b).size()) {
-                return std::get<1>(a) < std::get<1>(b);
-            }
-            return std::get<1>(a).size() < std::get<1>(b).size();
-        }
-        return std::get<0>(a) < std::get<0>(b);
+    S3D::Timestamp latestTimestamp = std::get<0>(entries.at(0));
+    for (const auto& entry : entries) {
+        latestTimestamp = std::max(latestTimestamp, std::get<0>(entry));
+    }
+
+    std::vector<std::tuple<S3D::Timestamp, S3D::Name>> latestEntries{};
+
+    std::copy_if(entries.begin(), entries.end(), std::back_inserter(latestEntries), [&latestTimestamp](auto entry) {
+       return std::get<0>(entry) == latestTimestamp;
     });
 
-    const auto& latestName = std::get<1>(*latestEntry);
+    S3D::Name latestName = std::get<1>(latestEntries.at(0));
+    for (const auto& entry : latestEntries) {
+        latestName = S3D::DatabaseImpl::preferredNameOf(std::get<1>(entry), latestName);
+    }
+
+    std::cout << "---------------------------" << std::endl;
+
+    if (nameFromDb.get() != latestName.get()) {
+        int h = 3;
+    }
 
     RC_ASSERT(nameFromDb == latestName);
 }
