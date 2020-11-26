@@ -26,7 +26,7 @@ ViewModelImpl::ViewModelImpl(std::unique_ptr<Database> db, std::unique_ptr<Netwo
         this->documents_ = this->db_->documents();
 }
 
-void ViewModelImpl::createDocument(const std::string& name) {
+void ViewModelImpl::createDocument(const Name& name) {
     auto makeID = IDFactory();
     this->documents_.emplace_back(makeID(), name);
 }
@@ -106,7 +106,7 @@ const std::string& ViewModelImpl::message() const {
             [this, &now, &entity](const Coord& coord) { this->db_->upsert(entity, coord, now); },
             [this, &now, &entity](const Radius& radius) { this->db_->upsert(entity, radius, now); },
             [this, &now, &entity](const SetOperationType& type) { this->db_->upsert(entity, type, now); },
-            [this, &now, &entity](const std::string& name) { this->db_->upsert(entity, name, now); }
+            [this, &now, &entity](const Name& name) { this->db_->upsert(entity, name, now); }
         }, attribute);
     }
 

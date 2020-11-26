@@ -51,7 +51,7 @@ public:
      * Viewmodel interface
      */
     void open(const ID& document) override;
-    void createDocument(const std::string& name) override;
+    void createDocument(const Name& name) override;
     const std::unique_ptr<Document>& document() const override;
     const std::vector<DocumentWithName>& documents() const override;
     const std::string& message() const override;

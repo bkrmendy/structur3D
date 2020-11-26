@@ -8,8 +8,7 @@
 #include <string>
 
 namespace S3D {
-    struct Name {
-    private:
+    class Name {
         std::string value_;
     public:
         static std::string allowedCharacters;

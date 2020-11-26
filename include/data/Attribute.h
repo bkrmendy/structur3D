@@ -10,9 +10,10 @@
 #include "Base.h"
 #include "Radius.h"
 #include "SetOperationType.h"
+#include "Name.h"
 
 namespace S3D {
-    using Attribute = std::variant<Coord, Radius, SetOperationType, std::string>;
+    using Attribute = std::variant<Coord, Radius, SetOperationType, Name>;
 }
 
 #endif //STRUCTUR3D_BASE_ATTRIBUTE_H

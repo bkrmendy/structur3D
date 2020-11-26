@@ -20,6 +20,7 @@
 
 #include <utility>
 #include <db/NodeType.h>
+#include <data/Name.h>
 
 namespace S3D {
     namespace Protocol {
@@ -53,7 +54,7 @@ namespace S3D {
             serialize(s, edge.to);
         }
 
-        using Attribute = std::variant<Coord, Radius, SetOperationType, std::string, std::tuple<NodeType, ID>>;
+        using Attribute = std::variant<Coord, Radius, SetOperationType, Name, std::tuple<NodeType, ID>>;
 
         struct Update {
             const ID uid;

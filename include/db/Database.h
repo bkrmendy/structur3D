@@ -13,6 +13,7 @@
 #include <vector>
 #include <optional>
 #include <data/Timestamp.h>
+#include <data/Name.h>
 
 #include "./IDWithType.h"
 #include "./DocumentWithName.h"
@@ -36,8 +37,8 @@ struct Database {
     virtual void upsert(const ID&, const SetOperationType&, Timestamp timestamp) = 0;
     virtual void retract(const ID&, const SetOperationType&, Timestamp timestamp) = 0;
 
-    virtual void upsert(const ID&, const std::string& name, Timestamp timestamp) = 0;
-    virtual void retract(const ID&, const std::string& name, Timestamp timestamp) = 0;
+    virtual void upsert(const ID&, const Name& name, Timestamp timestamp) = 0;
+    virtual void retract(const ID&, const Name& name, Timestamp timestamp) = 0;
 
     virtual void connect(const ID&, const ID&, Timestamp timestamp) = 0;
     virtual void disconnect(const ID&, const ID&, Timestamp timestamp) = 0;

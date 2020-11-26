@@ -69,7 +69,7 @@ namespace S3D {
         tx.commit();
     }
 
-    void DatabaseImpl::upsertI(const ID &entity, const std::string &name, Timestamp timestamp, bool deleted) {
+    void DatabaseImpl::upsertI(const ID &entity, const Name &name, Timestamp timestamp, bool deleted) {
         std::string eid = to_string(entity);
 
         auto tx = sqlpp::start_transaction(*db);
@@ -86,7 +86,7 @@ namespace S3D {
                     .set(insertName.entity = eid,
                          insertName.timestamp = timestamp,
                          insertName.deleted = is_deleted(deleted),
-                         insertName.name = name));
+                         insertName.name = name.get()));
 
         tx.commit();
     }
@@ -184,11 +184,11 @@ namespace S3D {
         upsertI(entity, type, timestamp, false);
     }
 
-    void DatabaseImpl::upsert(const ID &eid, const std::string &name, Timestamp timestamp) {
+    void DatabaseImpl::upsert(const ID &eid, const Name &name, Timestamp timestamp) {
         upsertI(eid, name, timestamp, false);
     }
 
-    void DatabaseImpl::retract(const ID &eid, const std::string &name, Timestamp timestamp) {
+    void DatabaseImpl::retract(const ID &eid, const Name &name, Timestamp timestamp) {
         upsertI(eid, name, timestamp, true);
     }
 
@@ -261,7 +261,7 @@ namespace S3D {
                 std::stringstream stream{uid.document};
                 ID uid_temp;
                 stream >> uid_temp;
-                names.emplace_back(uid_temp, latestName);
+                names.emplace_back(uid_temp, Name{latestName});
             }
         }
 

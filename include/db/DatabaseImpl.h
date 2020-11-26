@@ -60,7 +60,7 @@ public:
 
     void upsertI(const ID& entity, const SetOperationType& type, Timestamp timestamp, bool deleted);
 
-    void upsertI(const ID& entity, const std::string& name, Timestamp timestamp, bool deleted);
+    void upsertI(const ID& entity, const Name& name, Timestamp timestamp, bool deleted);
 
     void connectI(const ID& entity, const ID& entity_to, Timestamp timestamp, bool deleted);
 
@@ -75,8 +75,8 @@ public:
     void upsert(const ID& entity, const SetOperationType& type, Timestamp timestamp) override;
     void retract(const ID& entity, const SetOperationType& type, Timestamp timestamp) override;
 
-    void upsert(const ID& entity, const std::string &name, Timestamp timestamp) override;
-    void retract(const ID& entity, const std::string &name, Timestamp timestamp) override;
+    void upsert(const ID& entity, const Name& name, Timestamp timestamp) override;
+    void retract(const ID& entity, const Name& name, Timestamp timestamp) override;
 
     void connect(const ID& entity, const ID& entity_to, Timestamp timestamp) override;
     void disconnect(const ID& entity, const ID& entity_to, Timestamp timestamp) override;
