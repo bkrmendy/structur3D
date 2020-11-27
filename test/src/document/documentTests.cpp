@@ -50,13 +50,15 @@ namespace S3D {
 
     class MockInteractor : public Interactor {
     public:
-        MOCK_METHOD(void, create, (std::shared_ptr<Node>, const ID& document), (override));
-        MOCK_METHOD(void, connect, (const ID& from, const ID& to), (override));
-        MOCK_METHOD(void, update, (const ID& entity, const Attribute& attribute), (override));
-        MOCK_METHOD(void, remove, (std::shared_ptr<Node>, const ID& document), (override));
-        MOCK_METHOD(void, disconnect, (const ID& from, const ID& to), (override));
+        MOCK_METHOD(void, create, (std::shared_ptr<Node>, const ID& document, Timestamp timestamp), (override));
+        MOCK_METHOD(void, connect, (const ID& from, const ID& to, Timestamp timestamp), (override));
+        MOCK_METHOD(void, upsert, (const ID& entity, const Attribute& attribute, Timestamp timestamp), (override));
+        MOCK_METHOD(void, remove, (std::shared_ptr<Node>, const ID& document, Timestamp timestamp), (override));
+        MOCK_METHOD(void, disconnect, (const ID& from, const ID& to, Timestamp timestamp), (override));
     };
 }
+
+using ::testing::_;
 
 TEST(DocumentTests, PropertyAccessorsOK) {
     std::shared_ptr<S3D::MockInteractor> interactor = std::make_shared<S3D::MockInteractor>();
@@ -94,8 +96,8 @@ TEST(DocumentTests, UpdateSphereRadius) {
 
     sphere->radius = new_radius;
 
-    EXPECT_CALL(*interactor, update(sphere->id(), S3D::Attribute{sphere->radius})).Times(1);
-    EXPECT_CALL(*interactor, update(sphere->id(), S3D::Attribute{sphere->coord})).Times(1);
+    EXPECT_CALL(*interactor, upsert(sphere->id(), S3D::Attribute{sphere->radius}, _)).Times(1);
+    EXPECT_CALL(*interactor, upsert(sphere->id(), S3D::Attribute{sphere->coord}, _)).Times(1);
 
     doc.update(sphere);
 
@@ -115,8 +117,8 @@ TEST(DocumentTests, UpdateSphereCoords) {
     auto new_coord = S3D::Coord{100, 200, 300};
     sphere->coord = new_coord;
 
-    EXPECT_CALL(*interactor, update(sphere->id(), S3D::Attribute{sphere->radius})).Times(1);
-    EXPECT_CALL(*interactor, update(sphere->id(), S3D::Attribute{sphere->coord})).Times(1);
+    EXPECT_CALL(*interactor, upsert(sphere->id(), S3D::Attribute{sphere->radius}, _)).Times(1);
+    EXPECT_CALL(*interactor, upsert(sphere->id(), S3D::Attribute{sphere->coord}, _)).Times(1);
     doc.update(sphere);
 
     auto actualCoord = std::dynamic_pointer_cast<S3D::Sphere>(doc.graph()->nodes().at(0))->coord;
@@ -136,7 +138,7 @@ TEST(DocumentTests, CreateSetOp) {
 
     std::shared_ptr<S3D::Node> setOp = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Intersection);
 
-    EXPECT_CALL(*interactor, create(setOp, docId)).Times(1);
+    EXPECT_CALL(*interactor, create(setOp, docId, _)).Times(1);
 
     doc.create(setOp);
 }
@@ -152,7 +154,7 @@ TEST(DocumentTests, CreateSphere) {
 
     std::shared_ptr<S3D::Node> sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
 
-    EXPECT_CALL(*interactor, create(sphere, docId)).Times(1);
+    EXPECT_CALL(*interactor, create(sphere, docId, _)).Times(1);
 
     doc.create(sphere);
 }
@@ -173,7 +175,7 @@ TEST(DocumentTests, RemoveSetOp) {
 
     auto doc = S3D::DocumentImpl(docId, interactor, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
-    EXPECT_CALL(*interactor, remove(unionNode, docId));
+    EXPECT_CALL(*interactor, remove(unionNode, docId, _));
 
     doc.remove(unionNode);
 }
@@ -194,7 +196,7 @@ TEST(DocumentTests, RemoveSphere) {
 
     auto doc = S3D::DocumentImpl(docId, interactor, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
-    EXPECT_CALL(*interactor, remove(sphere1, docId));
+    EXPECT_CALL(*interactor, remove(sphere1, docId, _));
 
     doc.remove(sphere1);
 }
@@ -213,7 +215,7 @@ TEST(DocumentTest, CreateEdge) {
 
     auto doc = S3D::DocumentImpl(docId, interactor, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
-    EXPECT_CALL(*interactor, connect(unionNode->id(), sphere1->id())).Times(1);
+    EXPECT_CALL(*interactor, connect(unionNode->id(), sphere1->id(), _)).Times(1);
 
     doc.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1));
 }
@@ -234,7 +236,7 @@ TEST(DocumentTest, RemoveEdge) {
 
     auto doc = S3D::DocumentImpl(docId, interactor, std::make_unique<S3D::Graph>(edges, nodes), std::make_unique<S3D::MockMeshFactory>());
 
-    EXPECT_CALL(*interactor, disconnect(unionNode->id(), sphere1->id()));
+    EXPECT_CALL(*interactor, disconnect(unionNode->id(), sphere1->id(), _));
 
     doc.remove(edges.at(0));
 

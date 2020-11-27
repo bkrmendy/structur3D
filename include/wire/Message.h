@@ -78,7 +78,6 @@ namespace S3D {
                 , create(create)
                 {}
         };
-
         template <typename S>
         void serialize(S& s, CreateDelete& create) {
             serialize(s, create.document);
