@@ -57,14 +57,6 @@ namespace S3D {
             return std::make_unique<Mesh>(vertices, indices);
         }
     };
-
-    bool operator==(const Coord& a, const Coord& b) {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
-    }
-
-    bool operator==(const Radius& a, const Radius& b) {
-        return a.magnitude() == b.magnitude();
-    }
 }
 
 using ::testing::Return;
@@ -181,13 +173,32 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
     std::vector<std::shared_ptr<S3D::Edge>> edges = { edge1, edge2 };
     std::vector<std::shared_ptr<S3D::Node>> nodes = { unionNode, sphere1, sphere2 };
 
+    ON_CALL(*mockDB, entities(docId))
+        .WillByDefault(
+                Return(std::vector<S3D::IDWithType>{
+                        {sphere1->id(), S3D::NodeType::Sphere},
+                        {sphere2->id(), S3D::NodeType::Sphere},
+                        {unionNode->id(), S3D::NodeType::SetOperation}}));
+
+    ON_CALL(*mockDB, sphere(sphere1->id()))
+        .WillByDefault(Return(std::optional{*sphere1}));
+    ON_CALL(*mockDB, sphere(sphere2->id()))
+            .WillByDefault(Return(std::optional{*sphere2}));
+    ON_CALL(*mockDB, setop(unionNode->id()))
+            .WillByDefault(Return(std::optional{*unionNode}));
+    ON_CALL(*mockDB, edges(unionNode->id()))
+            .WillByDefault(
+                    Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+
     auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
 
     vm->open(docId);
 
     EXPECT_EQ(vm->document()->id(), docId);
-    EXPECT_EQ(vm->document()->graph()->edges(), edges);
-    EXPECT_EQ(vm->document()->graph()->nodes(), nodes);
+    EXPECT_EQ(vm->document()->graph()->edges().size(), 2);
+    EXPECT_EQ(vm->document()->graph()->nodes().size(), 3);
+    EXPECT_EQ(vm->document()->graph()->roots().size(), 1);
+    EXPECT_EQ(vm->document()->graph()->roots().at(0)->id(), unionNode->id());
 }
 
 /*
