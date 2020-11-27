@@ -23,6 +23,12 @@ namespace S3D {
 
         ClientImpl(std::shared_ptr<Interactor> interactor) : interactor_{std::move(interactor)} { }
 
+        void process(Protocol::Message& message) const;
+
+        void process(Protocol::Update& update, bool deleted, Timestamp timestamp) const;
+
+        void process(Protocol::Create& create, bool deleted, Timestamp timestamp) const;
+
         void connect(std::string& uri) const final;
 
         void sync(std::vector<Protocol::Message>& message) const final;

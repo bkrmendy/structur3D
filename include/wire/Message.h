@@ -54,23 +54,19 @@ namespace S3D {
             serialize(s, edge.to);
         }
 
-        using Attribute = std::variant<Coord, Radius, SetOperationType, Name, std::tuple<NodeType, ID>>;
+        using Attribute = std::variant<Coord, Radius, SetOperationType, Name>;
 
         struct Create {
             ID document;
-            std::vector<Attribute> attributes;
+            Node node;
 
-            Create(const ID &document,
-                   std::vector<Attribute> attributes)
-                : document(document)
-                , attributes(std::move(attributes))
-                { }
+            Create(const ID &document, Node node) : document(document), node(std::move(node)) {}
         };
 
         template <typename S>
         void serialize(S& s, Create& create) {
             serialize(s, create.document);
-            s.container(create.attributes, [](S& s, auto attrib) { serialize(s, attrib); });
+            serialize(s, create.node);
         }
 
         struct Update {
@@ -102,11 +98,11 @@ namespace S3D {
             });
         }
 
-        using Payload = std::variant<Node, Edge, Update, Create>;
+        using Payload = std::variant<Edge, Update, Create>;
         template<typename S>
         void serialize(S& s, Payload& payload) {
             s.ext(payload, bitsery::ext::StdVariant{
-                [](S& s, Node& node) { serialize(s, node); },
+                [](S& s, Create& create) { serialize(s, create); },
                 [](S& s, Edge& edge) { serialize(s, edge); },
                 [](S& s, Update & update) { serialize(s, update); }
             });

@@ -41,11 +41,12 @@ public:
     /*
      * Interactor interface
      */
-    void create(std::shared_ptr<Node> node, const ID& document) override;
-    void connect(const ID& from, const ID& to) override;
-    void update(const ID& name, const Attribute& attribute) override;
-    void remove(std::shared_ptr<Node> node, const ID& document) override;
-    void disconnect(const ID& from, const ID& to) override;
+    void create(std::shared_ptr<Node> node, const ID& document, Timestamp timestamp) override;
+    void connect(const ID& from, const ID& to, Timestamp timestamp) override;
+    void upsert(const ID& name, const Attribute& attribute, Timestamp timestamp) override;
+    void retract(const ID& name, const Attribute& attribute, Timestamp timestamp) override;
+    void remove(std::shared_ptr<Node> node, const ID& document, Timestamp timestamp) override;
+    void disconnect(const ID& from, const ID& to, Timestamp timestamp) override;
 
     /*
      * Viewmodel interface
