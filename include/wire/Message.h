@@ -102,7 +102,7 @@ namespace S3D {
 
             Message() = delete;
 
-            Message(const ID &uid, Update payload, Timestamp timestamp, bool deleted)
+            Message(Payload payload, Timestamp timestamp, bool deleted)
                 : payload(std::move(payload))
                 , timestamp(timestamp)
                 , deleted(deleted)
