@@ -10,7 +10,6 @@
 #include "gmock/gmock.h"
 
 #include "data/Edge.h"
-#include "document/DocumentImpl.h"
 #include "db/Database.h"
 #include "data/Attribute.h"
 
@@ -27,6 +26,7 @@ namespace S3D {
 }
 
 using namespace S3D::Protocol;
+using ::testing::_;
 
 TEST(ClientImplTests, CreateMessage) {
     std::shared_ptr<S3D::MockInteractor> interactor = std::make_shared<S3D::MockInteractor>();
@@ -40,7 +40,7 @@ TEST(ClientImplTests, CreateMessage) {
 
     auto nodePtr = std::make_shared<S3D::SetOp>(node);
 
-    EXPECT_CALL(*interactor, create(std::shared_ptr<S3D::Node>(nodePtr), doc_id, 1));
+    EXPECT_CALL(*interactor, create(_, doc_id, 1));
 
     auto message = Message{CreateDelete{doc_id,
                                         S3D::Protocol::Node{node},
@@ -59,7 +59,7 @@ TEST(ClientImplTests, RemoveMessage) {
 
     auto node = std::make_shared<S3D::SetOp>(node_id, S3D::SetOperationType::Union);
 
-    EXPECT_CALL(*interactor, remove(std::shared_ptr<S3D::Node>(node), doc_id, 1));
+    EXPECT_CALL(*interactor, remove(_, doc_id, 1));
 
     auto message = Message{CreateDelete{doc_id,
                                         S3D::Protocol::Node{*node},

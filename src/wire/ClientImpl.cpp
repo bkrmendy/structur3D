@@ -24,12 +24,12 @@ namespace S3D {
 
     void ClientImpl::process(const Protocol::Message& message) const {
         std::visit(overloaded {
-                [interactor = this->interactor_, &message](const Protocol::ConnectDisconnect& edge) {
+                [this, &message](const Protocol::ConnectDisconnect& edge) {
                     switch (edge.deleted) {
                         case Protocol::Change::Assert:
-                            return interactor->connect(edge.from, edge.to, message.timestamp);
+                            return this->interactor_->connect(edge.from, edge.to, message.timestamp);
                         case Protocol::Change::Retract:
-                            return interactor->disconnect(edge.from, edge.to, message.timestamp);
+                            return this->interactor_->disconnect(edge.from, edge.to, message.timestamp);
                     }
                 },
                 [this, &message](const Protocol::Update& update) {
@@ -43,7 +43,7 @@ namespace S3D {
 
     void ClientImpl::process(const Protocol::CreateDelete &message, Timestamp timestamp) const {
         std::visit(overloaded {
-            [this, &message, timestamp](const Sphere& sphere) {
+            [this, &message, &timestamp](const Sphere& sphere) {
                 switch (message.create) {
                     case Protocol::Change::Assert:
                         return this->interactor_->create(std::make_shared<Sphere>(sphere), message.document, timestamp);
@@ -51,7 +51,7 @@ namespace S3D {
                         return this->interactor_->remove(std::make_shared<Sphere>(sphere), message.document, timestamp);
                 }
             },
-            [this, &message, timestamp](const SetOp& setOp) {
+            [this, &message, &timestamp](const SetOp& setOp) {
                 switch (message.create) {
                     case Protocol::Change::Assert:
                         return this->interactor_->create(std::make_shared<SetOp>(setOp), message.document, timestamp);
