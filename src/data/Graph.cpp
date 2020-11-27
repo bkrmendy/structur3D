@@ -76,14 +76,30 @@ namespace S3D {
                 this->edges_.end());
     }
 
-    void Graph::create(std::shared_ptr<Edge> edge) {
-        this->edges_.push_back(std::move(edge));
+    void Graph::connect(ID& from, ID& to) {
+        std::shared_ptr<Node> start{nullptr};
+        std::shared_ptr<Node> end{nullptr};
+
+        for (const auto& node : this->nodes_) {
+            if (node->id() == from) {
+                start = node;
+            } else if(node->id() == to) {
+                end = node;
+            }
+        }
+
+        auto make_id = IDFactory();
+        this->edges_.push_back(std::make_shared<Edge>(make_id(), start, end));
     }
 
-    void Graph::remove(std::shared_ptr<Edge> edge) {
+    void Graph::disconnect(ID& from, ID& to) {
         this->edges_.erase(
-                std::remove(this->edges_.begin(), this->edges_.end(), edge),
-                this->edges_.end());
+                std::remove_if(
+                        this->edges().begin(),
+                        this->edges().end(),
+                        [&from, &to](auto edge){ return edge->from->id() == from && edge->to->id() == to; }),
+                this->edges_.end()
+        );
     }
 
     void Graph::access(const ID &uid, std::function<void(std::shared_ptr<Node>)>&& action) {
