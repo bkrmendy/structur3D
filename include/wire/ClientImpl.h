@@ -25,9 +25,7 @@ namespace S3D {
 
         void process(Protocol::Message& message) const;
 
-        void process(Protocol::Update& update, bool deleted, Timestamp timestamp) const;
-
-        void process(Protocol::Create& create, bool deleted, Timestamp timestamp) const;
+        void process(Protocol::CreateDelete& message, Timestamp timestamp) const;
 
         void connect(std::string& uri) const final;
 

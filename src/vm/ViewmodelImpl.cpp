@@ -90,18 +90,20 @@ namespace S3D {
             this->db_->upsert(sphere->uid, sphere->radius, now);
             this->db_->upsert(sphere->uid, sphere->coord, now);
 
-            auto message = Protocol::Message{Protocol::Payload{Protocol::Create{document,
-                                                                                Protocol::Node{*sphere}
-                                            }}, now, false};
+            auto message = Protocol::Message{Protocol::Payload{Protocol::CreateDelete{document,
+                                                                                      Protocol::Node{*sphere},
+                                                                                      Protocol::Change::Assert
+                                            }}, now};
             this->network_->send(message);
 
         } else if (auto setOp = std::dynamic_pointer_cast<SetOp>(node)) {
             this->db_->create(node->id(), NodeType::SetOperation, document, now);
             this->db_->upsert(setOp->uid, setOp->type, now);
 
-            auto message = Protocol::Message{Protocol::Payload{Protocol::Create{document,
-                                                                                Protocol::Node{*setOp},
-            }}, now, false};
+            auto message = Protocol::Message{Protocol::Payload{Protocol::CreateDelete{document,
+                                                                                      Protocol::Node{*setOp},
+                                                                                      Protocol::Change::Assert
+            }}, now};
             this->network_->send(message);
 
         }
@@ -111,6 +113,10 @@ namespace S3D {
 
     void ViewModelImpl::connect(const ID &from, const ID &to, Timestamp now) {
         this->db_->connect(from, to, now);
+        auto message = Protocol::Message{Protocol::Payload{Protocol::ConnectDisconnect{from,
+                                                                                       to,
+                                                                                       Protocol::Change::Assert}}, now};
+        this->network_->send(message);
     }
 
     void ViewModelImpl::upsert(const ID& entity, const Attribute& attribute, Timestamp now) {
@@ -119,8 +125,7 @@ namespace S3D {
                 this->db_->upsert(entity, coord, now);
                 auto message = Protocol::Message{Protocol::Payload{Protocol::Update{entity,
                                                                                         Protocol::Attribute{coord}}},
-                                                now,
-                                        false};
+                                                now};
                 this->network_->send(message);
                 this->document()->graph()->access(entity, [&coord](auto node) {
                     std::dynamic_pointer_cast<Sphere>(node)->coord = coord;
@@ -130,8 +135,7 @@ namespace S3D {
                 this->db_->upsert(entity, radius, now);
                 auto message = Protocol::Message{Protocol::Payload{Protocol::Update{entity,
                                                                                                 Protocol::Attribute{radius}}},
-                                                 now,
-                                                 false};
+                                                 now};
                 this->network_->send(message);
                 this->document()->graph()->access(entity, [&radius](auto node) {
                     std::dynamic_pointer_cast<Sphere>(node)->radius = radius;
@@ -141,8 +145,7 @@ namespace S3D {
                 this->db_->upsert(entity, type, now);
                 auto message = Protocol::Message{Protocol::Payload{Protocol::Update{entity,
                                                                                                     Protocol::Attribute{type}}},
-                                                 now,
-                                                 false};
+                                                 now};
                 this->network_->send(message);
                 this->document()->graph()->access(entity, [type](auto node) {
                     std::dynamic_pointer_cast<SetOp>(node)->type = type;
@@ -152,8 +155,7 @@ namespace S3D {
                 this->db_->upsert(entity, name, now);
                 auto message = Protocol::Message{Protocol::Payload{Protocol::Update{entity,
                                                                                         Protocol::Attribute{name}}},
-                                                 now,
-                                                 false};
+                                                 now};
                 this->network_->send(message);
                 for (auto& document : documents_) {
                     if (document.uid == entity) {
@@ -164,58 +166,7 @@ namespace S3D {
         }, attribute);
     }
 
-    void ViewModelImpl::retract(const ID &entity, const Attribute &attribute, Timestamp now) {
-        std::visit(overloaded {
-                [this, &now, &entity](const Coord& coord) {
-                    this->db_->retract(entity, coord, now);
-                    auto message = Protocol::Message{Protocol::Payload{Protocol::Update{entity,
-                                                                                        Protocol::Attribute{coord}}},
-                                                     now,
-                                                     true};
-                    this->network_->send(message);
-                    this->document()->graph()->access(entity, [&coord](auto node) {
-                        std::dynamic_pointer_cast<Sphere>(node)->coord = coord;
-                    });
-                },
-                [this, &now, &entity](const Radius& radius) {
-                    this->db_->retract(entity, radius, now);
-                    auto message = Protocol::Message{Protocol::Payload{Protocol::Update{entity,
-                                                                                        Protocol::Attribute{radius}}},
-                                                     now,
-                                                     true};
-                    this->network_->send(message);
-                    this->document()->graph()->access(entity, [&radius](auto node) {
-                        std::dynamic_pointer_cast<Sphere>(node)->radius = radius;
-                    });
-                },
-                [this, &now, &entity](const SetOperationType& type) {
-                    this->db_->retract(entity, type, now);
-                    auto message = Protocol::Message{Protocol::Payload{Protocol::Update{entity,
-                                                                                        Protocol::Attribute{type}}},
-                                                     now,
-                                                     true};
-                    this->network_->send(message);
-                    this->document()->graph()->access(entity, [type](auto node) {
-                        std::dynamic_pointer_cast<SetOp>(node)->type = type;
-                    });
-                },
-                [this, &now, &entity](const Name& name) {
-                    this->db_->retract(entity, name, now);
-                    auto message = Protocol::Message{Protocol::Payload{Protocol::Update{entity,
-                                                                                        Protocol::Attribute{name}}},
-                                                     now,
-                                                     true};
-                    this->network_->send(message);
-                    for (auto& document : documents_) {
-                        if (document.uid == entity) {
-                            document.name = name;
-                        }
-                    }
-                }
-        }, attribute);
-    }
-
-    void ViewModelImpl::remove(std::shared_ptr <Node> node, const ID &document, Timestamp now) {
+    void ViewModelImpl::remove(std::shared_ptr<Node> node, const ID &document, Timestamp now) {
         this->db_->remove(node->id(), document, now);
         if (auto sphere = std::dynamic_pointer_cast<Sphere>(node)) {
             this->db_->retract(sphere->uid, sphere->radius, now);
@@ -227,6 +178,11 @@ namespace S3D {
 
     void ViewModelImpl::disconnect(const ID &from, const ID &to, Timestamp timestamp) {
         this->db_->disconnect(from, to, timestamp);
+        auto message = Protocol::Message{Protocol::Payload{Protocol::ConnectDisconnect{from,
+                                                                                       to,
+                                                                                       Protocol::Change::Assert}},
+                                         timestamp};
+        this->network_->send(message);
     }
 }
 

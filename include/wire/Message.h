@@ -24,6 +24,11 @@
 
 namespace S3D {
     namespace Protocol {
+        enum class Change {
+            Assert,
+            Retract
+        };
+
         using Node = std::variant<Sphere, SetOp>;
         template <typename S>
         void serialize(S& s, Node& node) {
@@ -40,33 +45,45 @@ namespace S3D {
             });
         }
 
-        struct Edge {
+        struct ConnectDisconnect {
             const ID from;
             const ID to;
+            const Change deleted;
 
-            Edge() = delete;
+            ConnectDisconnect() = delete;
 
-            Edge(const ID &from, const ID &to) : from(from), to(to) { }
+            ConnectDisconnect(const ID &from, const ID &to, const Change deleted)
+                : from(from)
+                , to(to)
+                , deleted(deleted)
+                {}
         };
         template <typename S>
-        void serialize(S& s, Edge& edge) {
+        void serialize(S& s, ConnectDisconnect& edge) {
             serialize(s, edge.from);
             serialize(s, edge.to);
+            s.value4b(edge.deleted);
         }
 
         using Attribute = std::variant<Coord, Radius, SetOperationType, Name>;
 
-        struct Create {
+        struct CreateDelete {
             ID document;
             Node node;
+            Change create;
 
-            Create(const ID &document, Node node) : document(document), node(std::move(node)) {}
+            CreateDelete(const ID &document, Node node, Change create)
+                : document(document)
+                , node(std::move(node))
+                , create(create)
+                {}
         };
 
         template <typename S>
-        void serialize(S& s, Create& create) {
+        void serialize(S& s, CreateDelete& create) {
             serialize(s, create.document);
             serialize(s, create.node);
+            s.value4b(create.create);
         }
 
         struct Update {
@@ -98,12 +115,12 @@ namespace S3D {
             });
         }
 
-        using Payload = std::variant<Edge, Update, Create>;
+        using Payload = std::variant<ConnectDisconnect, Update, CreateDelete>;
         template<typename S>
         void serialize(S& s, Payload& payload) {
             s.ext(payload, bitsery::ext::StdVariant{
-                [](S& s, Create& create) { serialize(s, create); },
-                [](S& s, Edge& edge) { serialize(s, edge); },
+                [](S& s, CreateDelete& create) { serialize(s, create); },
+                [](S& s, ConnectDisconnect& edge) { serialize(s, edge); },
                 [](S& s, Update & update) { serialize(s, update); }
             });
         }
@@ -111,21 +128,18 @@ namespace S3D {
         struct Message {
             const Payload payload;
             const Timestamp timestamp;
-            const bool deleted;
 
             Message() = delete;
 
-            Message(Payload payload, Timestamp timestamp, bool deleted)
+            Message(Payload payload, Timestamp timestamp)
                 : payload(std::move(payload))
                 , timestamp(timestamp)
-                , deleted(deleted)
                 {}
         };
         template <typename S>
         void serialize(S& s, Message& message) {
             serialize(s, message.payload);
             s.value8b(message.timestamp);
-            s.boolValue(message.deleted);
         };
     }
 

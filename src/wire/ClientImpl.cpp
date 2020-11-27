@@ -25,46 +25,41 @@ namespace S3D {
     void ClientImpl::process(Protocol::Message& message) const {
         Protocol::Payload payload = message.payload;
         std::visit(overloaded {
-                [interactor = this->interactor_, &message](Protocol::Edge& edge) {
-                    if (message.deleted) {
-                        interactor->disconnect(edge.from, edge.to, message.timestamp);
-                    } else {
-                        interactor->connect(edge.from, edge.to, message.timestamp);
+                [interactor = this->interactor_, &message](Protocol::ConnectDisconnect& edge) {
+                    switch (edge.deleted) {
+                        case Protocol::Change::Assert:
+                            return interactor->connect(edge.from, edge.to, message.timestamp);
+                        case Protocol::Change::Retract:
+                            return interactor->disconnect(edge.from, edge.to, message.timestamp);
                     }
                 },
                 [this, &message](Protocol::Update& update) {
-                     this->process(update, message.deleted, message.timestamp);
+                    this->interactor_->upsert(update.uid, update.attribute, message.timestamp);
                 },
-                [this, &message](Protocol::Create& create) {
-                    this->process(create, message.deleted, message.timestamp);
+                [this, &message](Protocol::CreateDelete& create) {
+                    this->process(create, message.timestamp);
                 }
         }, payload);
     }
 
-    void ClientImpl::process(Protocol::Update &update, bool deleted, Timestamp timestamp) const {
-        if(deleted) {
-            this->interactor_->retract(update.uid, update.attribute, timestamp);
-        } else {
-            this->interactor_->upsert(update.uid, update.attribute, timestamp);
-        }
-    }
-
-    void ClientImpl::process(Protocol::Create &create, bool deleted, Timestamp timestamp) const {
+    void ClientImpl::process(Protocol::CreateDelete &message, Timestamp timestamp) const {
         std::visit(overloaded {
-            [this, doc = create.document, deleted, timestamp](Sphere& sphere) {
-                if (deleted) {
-                    this->interactor_->remove(std::make_shared<Sphere>(sphere), doc, timestamp);
-                } else {
-                    this->interactor_->create(std::make_shared<Sphere>(sphere), doc, timestamp);
+            [this, &message, timestamp](Sphere& sphere) {
+                switch (message.create) {
+                    case Protocol::Change::Assert:
+                        return this->interactor_->create(std::make_shared<Sphere>(sphere), message.document, timestamp);
+                    case Protocol::Change::Retract:
+                        return this->interactor_->remove(std::make_shared<Sphere>(sphere), message.document, timestamp);
                 }
             },
-            [this, doc = create.document, deleted, timestamp](SetOp& setOp) {
-                if (deleted) {
-                    this->interactor_->remove(std::make_shared<SetOp>(setOp), doc, timestamp);
-                } else {
-                    this->interactor_->create(std::make_shared<SetOp>(setOp), doc, timestamp);
+            [this, &message, timestamp](SetOp& setOp) {
+                switch (message.create) {
+                    case Protocol::Change::Assert:
+                        return this->interactor_->create(std::make_shared<SetOp>(setOp), message.document, timestamp);
+                    case Protocol::Change::Retract:
+                        return this->interactor_->remove(std::make_shared<SetOp>(setOp), message.document, timestamp);
                 }
             }
-        }, create.node);
+        }, message.node);
     }
 }

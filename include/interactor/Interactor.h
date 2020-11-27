@@ -17,7 +17,6 @@ namespace S3D {
         virtual void create(std::shared_ptr<Node>, const ID& document, Timestamp timestamp) = 0;
         virtual void connect(const ID& from, const ID& to, Timestamp timestamp) = 0;
         virtual void upsert(const ID& entity, const Attribute& attribute, Timestamp timestamp) = 0;
-        virtual void retract(const ID& entity, const Attribute& attribute, Timestamp timestamp) = 0;
         virtual void remove(std::shared_ptr<Node> node, const ID& document, Timestamp timestamp) = 0;
         virtual void disconnect(const ID& from, const ID& to, Timestamp timestamp) = 0;
 
