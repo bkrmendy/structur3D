@@ -37,8 +37,8 @@ public:
 
     void access(const ID& uid, std::function<void(std::shared_ptr<Node>)>&& action);
 
-    void connect(ID& from, ID& to);
-    void disconnect(ID& from, ID& to);
+    void connect(const ID& from, const ID& to);
+    void disconnect(const ID& from, const ID& to);
 };
 
 }

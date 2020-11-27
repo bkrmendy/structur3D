@@ -76,7 +76,7 @@ namespace S3D {
                 this->edges_.end());
     }
 
-    void Graph::connect(ID& from, ID& to) {
+    void Graph::connect(const ID& from, const ID& to) {
         std::shared_ptr<Node> start{nullptr};
         std::shared_ptr<Node> end{nullptr};
 
@@ -92,12 +92,12 @@ namespace S3D {
         this->edges_.push_back(std::make_shared<Edge>(make_id(), start, end));
     }
 
-    void Graph::disconnect(ID& from, ID& to) {
+    void Graph::disconnect(const ID& from, const ID& to) {
         this->edges_.erase(
                 std::remove_if(
-                        this->edges().begin(),
-                        this->edges().end(),
-                        [&from, &to](auto edge){ return edge->from->id() == from && edge->to->id() == to; }),
+                        this->edges_.begin(),
+                        this->edges_.end(),
+                        [&from, &to](const auto& edge){ return edge->from->id() == from && edge->to->id() == to; }),
                 this->edges_.end()
         );
     }

@@ -27,25 +27,27 @@
 
 namespace S3D {
 
-class ViewModelImpl final : public ViewModel, public Interactor, public std::enable_shared_from_this<ViewModelImpl> {
+class ViewModelImpl final : public ViewModel {
 public:
     std::unique_ptr<Database> db_;
     std::unique_ptr<ClientEndpoint> network_;
+
     std::vector<DocumentWithName> documents_;
+
     std::unique_ptr<Document> currentDocument_;
+
+    std::shared_ptr<Interactor> databaseInteractor_;
+    std::shared_ptr<Interactor> documentInteractor_;
+    std::shared_ptr<Interactor> networkInteractor_;
+
     std::vector<std::future<void>> cancellables_;
     std::string message_;
 
     ViewModelImpl(std::unique_ptr<S3D::Database> db, std::unique_ptr<ClientEndpoint> network);
 
-    /*
-     * Interactor interface
-     */
-    void create(std::shared_ptr<Node> node, const ID& document, Timestamp timestamp) override;
-    void connect(const ID& from, const ID& to, Timestamp timestamp) override;
-    void upsert(const ID& name, const Attribute& attribute, Timestamp timestamp) override;
-    void remove(std::shared_ptr<Node> node, const ID& document, Timestamp timestamp) override;
-    void disconnect(const ID& from, const ID& to, Timestamp timestamp) override;
+    std::shared_ptr<Interactor> makeDBInteractor() const;
+    std::shared_ptr<Interactor> makeNetworkInteractor(std::shared_ptr<Interactor> dbInteractor);
+    std::shared_ptr<Interactor> makeDocumentInteractor(std::shared_ptr<Interactor> dbInteractor);
 
     /*
      * Viewmodel interface

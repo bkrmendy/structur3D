@@ -122,8 +122,8 @@ TEST(GraphTests, TestRemoveRootNode) {
     g.create(sphere1);
     g.create(sphere2);
 
-    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1));
-    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2));
+    g.connect(unionNode->id(), sphere1->id());
+    g.connect(unionNode->id(), sphere2->id());
 
     g.remove(unionNode);
 
@@ -142,8 +142,8 @@ TEST(GraphTests, TestCreateEdge) {
     g.create(sphere1);
     g.create(sphere2);
 
-    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1));
-    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2));
+    g.connect(unionNode->id(), sphere1->id());
+    g.connect(unionNode->id(), sphere2->id());
 
     EXPECT_EQ(g.nodes().size(), 3);
     EXPECT_EQ(g.edges().size(), 2);
@@ -156,16 +156,15 @@ TEST(GraphTests, TestRemoveEdge) {
     auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{3, 4, 5}, S3D::Radius{3});
     auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
 
-    auto e1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
-
     g.create(unionNode);
     g.create(sphere1);
     g.create(sphere2);
 
-    g.create(e1);
-    g.create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2));
+    g.connect(unionNode->id(), sphere1->id());
+    g.connect(unionNode->id(), sphere2->id());
 
-    g.remove(e1);
+    g.disconnect(unionNode->id(), sphere1->id());
+
 
     EXPECT_EQ(g.nodes().size(), 3);
     EXPECT_EQ(g.edges().size(), 1);
