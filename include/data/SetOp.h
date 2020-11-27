@@ -19,7 +19,7 @@
 namespace S3D {
     struct SetOp : public Node {
         const ID uid;
-        const SetOperationType type;
+        SetOperationType type;
 
         SetOp() = delete;
         SetOp(const ID uid, const SetOperationType type) : uid{uid}, type{type} {}

@@ -33,10 +33,12 @@ public:
     const std::vector<std::shared_ptr<Node>>& nodes() const;
 
     void create(std::shared_ptr<Node> node);
-    void remove(const std::shared_ptr<Node>& node);
+    void remove(std::shared_ptr<Node> node);
+
+    void access(const ID& uid, std::function<void(std::shared_ptr<Node>)>&& action);
 
     void create(std::shared_ptr<Edge> edge);
-    void remove(const std::shared_ptr<Edge>& edge);
+    void remove(std::shared_ptr<Edge> edge);
 };
 
 }

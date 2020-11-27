@@ -37,7 +37,7 @@ add_library(structur3d_base SHARED
 
         src/mesh/MeshFactory.cpp
 
-        src/utils/random_string.cpp src/data/Name.cpp include/wire/Server.h)
+        src/utils/random_string.cpp src/data/Name.cpp include/wire/Server.h include/utils/approximately_equal.h src/utils/approximately_equal.cpp)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})

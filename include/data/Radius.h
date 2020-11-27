@@ -12,8 +12,9 @@ namespace S3D {
     public:
         explicit Radius(float magnitude);
         float magnitude() const;
-
     };
+
+    bool operator==(const Radius& left, const Radius& right);
 }
 
 #endif //STRUCTUR3D_BASE_RADIUS_H

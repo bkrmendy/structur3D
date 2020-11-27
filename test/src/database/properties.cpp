@@ -6,9 +6,11 @@
 #include "rapidcheck.h"
 #include "rapidcheck/gtest.h"
 
+#include "utils/approximately_equal.h"
 #include "data/Base.h"
 #include "data/Coord.h"
 #include "db/DatabaseImpl.h"
+
 
 namespace rc {
     template <>
@@ -30,12 +32,6 @@ namespace rc {
                                     gen::elementOf(S3D::Name::allowedCharacters))));
         }
     };
-}
-
-/// https://stackoverflow.com/a/253874
-bool approximatelyEqual(float a, float b, float epsilon)
-{
-    return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
 
 RC_GTEST_PROP(DatabasePropertyTests,
@@ -74,7 +70,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
 
       auto latestRadius = S3D::Radius{std::get<1>(*latest_entry)}.magnitude();
 
-      RC_ASSERT(approximatelyEqual(radiusFromDb, latestRadius, 1));
+      RC_ASSERT(S3D::approximately_equal(radiusFromDb, latestRadius, 1));
 }
 
 RC_GTEST_PROP(DatabasePropertyTests,
@@ -117,9 +113,9 @@ RC_GTEST_PROP(DatabasePropertyTests,
                   }
               }
 
-              RC_ASSERT(approximatelyEqual(coordFromDb.x, farthestCoord.x, 1));
-              RC_ASSERT(approximatelyEqual(coordFromDb.y, farthestCoord.y, 1));
-              RC_ASSERT(approximatelyEqual(coordFromDb.z, farthestCoord.z, 1));
+              RC_ASSERT(S3D::approximately_equal(coordFromDb.x, farthestCoord.x, 1));
+              RC_ASSERT(S3D::approximately_equal(coordFromDb.y, farthestCoord.y, 1));
+              RC_ASSERT(S3D::approximately_equal(coordFromDb.z, farthestCoord.z, 1));
 }
 
 RC_GTEST_PROP(DatabasePropertyTests,

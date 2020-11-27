@@ -56,14 +56,6 @@ namespace S3D {
         MOCK_METHOD(void, remove, (std::shared_ptr<Node>, const ID& document), (override));
         MOCK_METHOD(void, disconnect, (const ID& from, const ID& to), (override));
     };
-
-    bool operator==(const Coord& a, const Coord& b) {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
-    }
-
-    bool operator==(const Radius& a, const Radius& b) {
-        return a.magnitude() == b.magnitude();
-    }
 }
 
 TEST(DocumentTests, PropertyAccessorsOK) {

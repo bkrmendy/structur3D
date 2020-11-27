@@ -9,6 +9,8 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include "data/Radius.h"
+
 #include "mesh/MeshFactory.h"
 
 #include "db/Database.h"
@@ -190,6 +192,14 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
             .WillByDefault(
                     Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
 
+    EXPECT_CALL(*mockDB, entities(docId));
+    EXPECT_CALL(*mockDB, sphere(sphere1->id()));
+    EXPECT_CALL(*mockDB, sphere(sphere2->id()));
+    EXPECT_CALL(*mockDB, setop(unionNode->id()));
+    EXPECT_CALL(*mockDB, edges(unionNode->id()));
+    EXPECT_CALL(*mockDB, edges(sphere1->id()));
+    EXPECT_CALL(*mockDB, edges(sphere2->id()));
+
     auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
 
     vm->open(docId);
@@ -199,93 +209,175 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
     EXPECT_EQ(vm->document()->graph()->nodes().size(), 3);
     EXPECT_EQ(vm->document()->graph()->roots().size(), 1);
     EXPECT_EQ(vm->document()->graph()->roots().at(0)->id(), unionNode->id());
+
+    vm->db_.reset();
+    vm->network_.reset();
 }
 
-/*
- * 11. 27: deferred for later
- */
+TEST(ViewModelTests, UpdateSphereRadius) {
+    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
+    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
+    auto makeId = S3D::IDFactory();
+    const auto docId = makeId();
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
 
-//TEST(ViewModelTests, UpdateSphereRadius) {
-//    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
-//    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
-//    auto makeId = S3D::IDFactory();
-//    const auto docId = makeId();
-//
-//    std::vector<S3D::DocumentWithName> docs = {{ docId, S3D::Name{"Doc 1"} }};
-//
-//    ON_CALL(*mockDB, documents())
-//            .WillByDefault(Return(docs));
-//
-//    auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
-//    std::vector<std::shared_ptr<S3D::Edge>> edges{};
-//    std::vector<std::shared_ptr<S3D::Node>> nodes = { sphere };
-//    auto new_radius = S3D::Radius{100};
-//
-//    EXPECT_CALL(*mockDB, upsert(sphere->id(), new_radius, _));
-//    EXPECT_CALL(*mockDB, upsert(sphere->id(), sphere->coord, _));
-//
-//    EXPECT_CALL(*mockNet,
-//                send(Message{Update{sphere->id(), Attribute{new_radius}}, 0, false}));
-//
-//    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
-//
-//    vm->open(docId);
-//
-//    const auto& doc = vm->document();
-//
-//    sphere->radius = new_radius;
-//
-//    doc->update(sphere);
-//}
-//
-//TEST(ViewModelTests, UpdateSphereCoords) {
-//    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
-//    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
-//    auto makeId = S3D::IDFactory();
-//    const auto docId = makeId();
-//    auto sphere = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
-//    std::vector<std::shared_ptr<S3D::Edge>> edges{};
-//    std::vector<std::shared_ptr<S3D::Node>> nodes = { sphere };
-//
-//    auto new_coord = S3D::Coord{100, 200, 300};
-//    sphere->coord = new_coord;
-//
-//    EXPECT_CALL(*interactor, update(sphere->id(), S3D::Attribute{sphere->radius})).Times(1);
-//    EXPECT_CALL(*interactor, update(sphere->id(), S3D::Attribute{sphere->coord})).Times(1);
-//
-//    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
-//    vm->open(docId);
-//
-//    const auto& doc = vm->document();
-//
-//    doc->update(sphere);
-//
-//    auto actualCoord = std::dynamic_pointer_cast<S3D::Sphere>(doc->graph()->nodes().at(0))->coord;
-//    EXPECT_FLOAT_EQ(actualCoord.x, new_coord.x);
-//    EXPECT_FLOAT_EQ(actualCoord.y, new_coord.y);
-//    EXPECT_FLOAT_EQ(actualCoord.z, new_coord.z);
-//}
-//
-//TEST(ViewModelTests, CreateSetOp) {
-//    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
-//    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
-//    auto makeId = S3D::IDFactory();
-//    const auto docId = makeId();
-//    std::vector<std::shared_ptr<S3D::Edge>> edges{};
-//    std::vector<std::shared_ptr<S3D::Node>> nodes{};
-//
-//    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
-//    vm->open(docId);
-//
-//    const auto& doc = vm->document();
-//
-//    std::shared_ptr<S3D::Node> setOp = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Intersection);
-//
-//    EXPECT_CALL(*interactor, create(setOp, docId)).Times(1);
-//
-//    doc->create(setOp);
-//}
-//
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
+
+    auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
+    auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
+
+    std::vector<std::shared_ptr<S3D::Edge>> edges = { edge1, edge2 };
+    std::vector<std::shared_ptr<S3D::Node>> nodes = { unionNode, sphere1, sphere2 };
+
+    ON_CALL(*mockDB, entities(docId))
+            .WillByDefault(
+                    Return(std::vector<S3D::IDWithType>{
+                            {sphere1->id(), S3D::NodeType::Sphere},
+                            {sphere2->id(), S3D::NodeType::Sphere},
+                            {unionNode->id(), S3D::NodeType::SetOperation}}));
+
+    ON_CALL(*mockDB, sphere(sphere1->id()))
+            .WillByDefault(Return(std::optional{*sphere1}));
+    ON_CALL(*mockDB, sphere(sphere2->id()))
+            .WillByDefault(Return(std::optional{*sphere2}));
+    ON_CALL(*mockDB, setop(unionNode->id()))
+            .WillByDefault(Return(std::optional{*unionNode}));
+    ON_CALL(*mockDB, edges(unionNode->id()))
+            .WillByDefault(
+                    Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+
+    const auto new_radius = S3D::Radius{111};
+
+    EXPECT_CALL(*mockDB, upsert(sphere1->id(), new_radius, _));
+    EXPECT_CALL(*mockDB, upsert(sphere1->id(), sphere1->coord, _));
+    EXPECT_CALL(*mockNet, send(_)).Times(2);
+
+    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
+
+    vm->open(docId);
+
+    const auto& doc = vm->document();
+
+    sphere1->radius = new_radius;
+
+    doc->update(sphere1);
+
+    auto actualRadius = std::dynamic_pointer_cast<S3D::Sphere>(doc->graph()->nodes().at(0))->radius;
+    EXPECT_EQ(actualRadius, new_radius);
+
+    vm->db_.reset();
+    vm->network_.reset();
+}
+
+TEST(ViewModelTests, UpdateSphereCoords) {
+    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
+    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
+    auto makeId = S3D::IDFactory();
+    const auto docId = makeId();
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
+
+    auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
+    auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
+
+    std::vector<std::shared_ptr<S3D::Edge>> edges = { edge1, edge2 };
+    std::vector<std::shared_ptr<S3D::Node>> nodes = { unionNode, sphere1, sphere2 };
+
+    ON_CALL(*mockDB, entities(docId))
+            .WillByDefault(
+                    Return(std::vector<S3D::IDWithType>{
+                            {sphere1->id(), S3D::NodeType::Sphere},
+                            {sphere2->id(), S3D::NodeType::Sphere},
+                            {unionNode->id(), S3D::NodeType::SetOperation}}));
+
+    ON_CALL(*mockDB, sphere(sphere1->id()))
+            .WillByDefault(Return(std::optional{*sphere1}));
+    ON_CALL(*mockDB, sphere(sphere2->id()))
+            .WillByDefault(Return(std::optional{*sphere2}));
+    ON_CALL(*mockDB, setop(unionNode->id()))
+            .WillByDefault(Return(std::optional{*unionNode}));
+    ON_CALL(*mockDB, edges(unionNode->id()))
+            .WillByDefault(
+                    Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+
+    auto new_coord = S3D::Coord{100, 200, 300};
+
+    EXPECT_CALL(*mockDB, upsert(sphere1->id(), new_coord, _));
+    EXPECT_CALL(*mockDB, upsert(sphere1->id(), sphere1->radius, _));
+    EXPECT_CALL(*mockNet, send(_)).Times(2);
+
+    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
+
+    vm->open(docId);
+
+    const auto& doc = vm->document();
+
+    sphere1->coord = new_coord;
+
+    doc->update(sphere1);
+
+    auto actual_coords = std::dynamic_pointer_cast<S3D::Sphere>(doc->graph()->nodes().at(0))->coord;
+    EXPECT_EQ(actual_coords, new_coord);
+
+    vm->db_.reset();
+    vm->network_.reset();
+}
+
+TEST(ViewModelTests, CreateSetOp) {
+    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
+    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
+    auto makeId = S3D::IDFactory();
+    const auto docId = makeId();
+    auto unionNode = std::make_shared<S3D::SetOp>(makeId(), S3D::SetOperationType::Union);
+
+    auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
+    auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
+
+    auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
+    auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
+
+    std::vector<std::shared_ptr<S3D::Edge>> edges = { edge1, edge2 };
+    std::vector<std::shared_ptr<S3D::Node>> nodes = { unionNode, sphere1, sphere2 };
+
+    ON_CALL(*mockDB, entities(docId))
+            .WillByDefault(
+                    Return(std::vector<S3D::IDWithType>{
+                            {sphere1->id(), S3D::NodeType::Sphere},
+                            {sphere2->id(), S3D::NodeType::Sphere},
+                            {unionNode->id(), S3D::NodeType::SetOperation}}));
+
+    ON_CALL(*mockDB, sphere(sphere1->id()))
+            .WillByDefault(Return(std::optional{*sphere1}));
+    ON_CALL(*mockDB, sphere(sphere2->id()))
+            .WillByDefault(Return(std::optional{*sphere2}));
+    ON_CALL(*mockDB, setop(unionNode->id()))
+            .WillByDefault(Return(std::optional{*unionNode}));
+    ON_CALL(*mockDB, edges(unionNode->id()))
+            .WillByDefault(
+                    Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+
+    auto node_id = makeId();
+
+    EXPECT_CALL(*mockDB, create(node_id, S3D::NodeType::Sphere, docId, _));
+    EXPECT_CALL(*mockDB, upsert(node_id, S3D::SetOperationType::Union, _));
+    EXPECT_CALL(*mockNet, send(_));
+
+    auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
+    vm->open(docId);
+    const auto& doc = vm->document();
+
+    doc->create(std::make_shared<S3D::SetOp>(node_id, S3D::SetOperationType::Union));
+
+    EXPECT_EQ(doc->graph()->nodes().size(), 4);
+    EXPECT_EQ(doc->graph()->edges().size(), 2);
+
+    vm->db_.reset();
+    vm->network_.reset();
+}
+
 //TEST(ViewModelTests, CreateSphere) {
 //    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
 //    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
@@ -305,7 +397,11 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
 //
 //    doc->create(sphere);
 //}
-//
+
+/*
+ * 11. 27: deferred for later
+ */
+
 //TEST(ViewModelTests, RemoveSetOp) {
 //    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
 //    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
@@ -330,7 +426,7 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
 //
 //    doc->remove(unionNode);
 //}
-//
+
 //TEST(ViewModelTests, RemoveSphere) {
 //    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
 //    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
@@ -355,7 +451,7 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
 //
 //    doc->remove(sphere1);
 //}
-//
+
 //TEST(ViewModelTests, CreateEdge) {
 //    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
 //    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();
@@ -378,7 +474,7 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
 //
 //    doc->create(std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1));
 //}
-//
+
 //TEST(ViewModelTests, RemoveEdge) {
 //    std::unique_ptr<S3D::MockDatabase> mockDB = std::make_unique<S3D::MockDatabase>();
 //    std::unique_ptr<S3D::MockNetwork> mockNet = std::make_unique<S3D::MockNetwork>();

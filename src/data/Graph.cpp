@@ -63,7 +63,7 @@ namespace S3D {
         this->nodes_.push_back(std::move(node));
     }
 
-    void Graph::remove(const std::shared_ptr<Node>& node) {
+    void Graph::remove(std::shared_ptr<Node> node) {
         this->nodes_.erase(
                 std::remove(this->nodes_.begin(), this->nodes_.end(), node),
                 this->nodes_.end());
@@ -80,9 +80,17 @@ namespace S3D {
         this->edges_.push_back(std::move(edge));
     }
 
-    void Graph::remove(const std::shared_ptr<Edge>& edge) {
+    void Graph::remove(std::shared_ptr<Edge> edge) {
         this->edges_.erase(
                 std::remove(this->edges_.begin(), this->edges_.end(), edge),
                 this->edges_.end());
+    }
+
+    void Graph::access(const ID &uid, std::function<void(std::shared_ptr<Node>)>&& action) {
+        for (size_t i = 0; i < nodes_.size(); i++) {
+            if (nodes_.at(i)->id() == uid) {
+                action(nodes_.at(0));
+            }
+        }
     }
 }

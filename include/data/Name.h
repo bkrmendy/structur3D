@@ -17,7 +17,6 @@ namespace S3D {
         explicit Name(const std::string& name);
 
         const std::string& get() const;
-
     };
 
     bool operator==(const Name& left, const Name& right);

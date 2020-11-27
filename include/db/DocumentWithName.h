@@ -17,8 +17,8 @@
 namespace S3D {
 
 struct DocumentWithName {
-    const ID uid;
-    const Name name;
+    ID uid;
+    Name name;
 
     DocumentWithName(const ID& uid, Name name) : uid{uid}, name{std::move(name)} { }
 };

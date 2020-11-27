@@ -12,4 +12,8 @@ namespace S3D {
     }
 
     float Radius::magnitude() const { return this->magnitude_; }
+
+    bool operator==(const Radius& left, const Radius& right) {
+        return left.magnitude() == right.magnitude();
+    }
 }
