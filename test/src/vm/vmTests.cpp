@@ -154,9 +154,6 @@ TEST(ViewModelTests, OpenDocument) {
     EXPECT_EQ(currentDoc->graph()->nodes().size(), 3);
     EXPECT_EQ(currentDoc->graph()->edges().at(0)->from->id(), unionID);
     EXPECT_EQ(currentDoc->graph()->edges().at(1)->from->id(), unionID);
-
-    vm->db_.reset();
-    vm->network_.reset();
 }
 
 TEST(ViewModelTests, PropertyAccessorsOK) {
@@ -209,9 +206,6 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
     EXPECT_EQ(vm->document()->graph()->nodes().size(), 3);
     EXPECT_EQ(vm->document()->graph()->roots().size(), 1);
     EXPECT_EQ(vm->document()->graph()->roots().at(0)->id(), unionNode->id());
-
-    vm->db_.reset();
-    vm->network_.reset();
 }
 
 TEST(ViewModelTests, UpdateSphereRadius) {
@@ -265,9 +259,6 @@ TEST(ViewModelTests, UpdateSphereRadius) {
 
     auto actualRadius = std::dynamic_pointer_cast<S3D::Sphere>(doc->graph()->nodes().at(0))->radius;
     EXPECT_EQ(actualRadius, new_radius);
-
-    vm->db_.reset();
-    vm->network_.reset();
 }
 
 TEST(ViewModelTests, UpdateSphereCoords) {
@@ -321,9 +312,6 @@ TEST(ViewModelTests, UpdateSphereCoords) {
 
     auto actual_coords = std::dynamic_pointer_cast<S3D::Sphere>(doc->graph()->nodes().at(0))->coord;
     EXPECT_EQ(actual_coords, new_coord);
-
-    vm->db_.reset();
-    vm->network_.reset();
 }
 
 TEST(ViewModelTests, CreateSetOp) {
@@ -373,9 +361,6 @@ TEST(ViewModelTests, CreateSetOp) {
 
     EXPECT_EQ(doc->graph()->nodes().size(), 4);
     EXPECT_EQ(doc->graph()->edges().size(), 2);
-
-    vm->db_.reset();
-    vm->network_.reset();
 }
 
 TEST(ViewModelTests, CreateSphere) {
@@ -426,9 +411,6 @@ TEST(ViewModelTests, CreateSphere) {
 
     EXPECT_EQ(doc->graph()->nodes().size(), 4);
     EXPECT_EQ(doc->graph()->edges().size(), 2);
-
-    vm->db_.reset();
-    vm->network_.reset();
 }
 
 /*
