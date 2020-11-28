@@ -27,8 +27,7 @@
 
 namespace S3D {
 
-class ViewModelImpl final : public ViewModel {
-public:
+struct ViewModelImpl final : public ViewModel {
     std::unique_ptr<Database> db_;
     std::unique_ptr<ClientEndpoint> network_;
 
@@ -49,9 +48,6 @@ public:
     std::shared_ptr<Interactor> makeNetworkInteractor() const;
     std::shared_ptr<Interactor> makeDocumentInteractor() const;
 
-    /*
-     * Viewmodel interface
-     */
     void open(const ID& document) override;
     void createDocument(const Name& name) override;
     const std::unique_ptr<Document>& document() const override;

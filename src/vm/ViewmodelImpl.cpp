@@ -30,10 +30,11 @@ namespace S3D {
     }
 
     void ViewModelImpl::createDocument(const Name& name) {
-        auto makeID = IDFactory();
+        auto doc_id = IDFactory()();
         auto now = TimestampFactory().timestamp();
-        this->db_->upsert(makeID(), name, now);
-        this->documents_.emplace_back(makeID(), name);
+        this->db_->upsert(doc_id, name, now);
+        this->documents_.emplace_back(doc_id, name);
+        this->open(doc_id);
     }
 
     const std::vector<DocumentWithName>& ViewModelImpl::documents() const {
@@ -41,44 +42,46 @@ namespace S3D {
     }
 
     void ViewModelImpl::open(const ID &document) {
-    std::vector<std::shared_ptr<Node>> nodes{};
-    std::vector<std::shared_ptr<Edge>> edges{};
+        std::vector<Protocol::Message> messages{};
+        this->network_->sync(messages);
+        std::vector<std::shared_ptr<Node>> nodes{};
+        std::vector<std::shared_ptr<Edge>> edges{};
 
-    auto entities = this->db_->entities(document);
+        auto entities = this->db_->entities(document);
 
-    for (const auto& entity : entities) {
-        if (entity.type == NodeType::Sphere) {
-            auto maybeSphere = this->db_->sphere(entity.uid);
-            if (maybeSphere.has_value()) {
-                nodes.push_back(std::make_shared<Sphere>(maybeSphere.value()));
-            }
-        } else if (entity.type == NodeType::SetOperation) {
-            auto maybeSetOp = this->db_->setop(entity.uid);
-            if (maybeSetOp.has_value()) {
-                nodes.push_back(std::make_shared<SetOp>(maybeSetOp.value()));
-            }
-        }
-    }
-
-    auto makeID = IDFactory();
-
-    for (const auto& node : nodes) {
-        for (const auto& toPtr : this->db_->edges(node->id())) {
-            for (const auto& toNode : nodes) {
-                if (toNode->id() == toPtr) {
-                    const auto id = makeID();
-                    edges.emplace_back(std::make_shared<Edge>(id, node, toNode));
+        for (const auto& entity : entities) {
+            if (entity.type == NodeType::Sphere) {
+                auto maybeSphere = this->db_->sphere(entity.uid);
+                if (maybeSphere.has_value()) {
+                    nodes.push_back(std::make_shared<Sphere>(maybeSphere.value()));
+                }
+            } else if (entity.type == NodeType::SetOperation) {
+                auto maybeSetOp = this->db_->setop(entity.uid);
+                if (maybeSetOp.has_value()) {
+                    nodes.push_back(std::make_shared<SetOp>(maybeSetOp.value()));
                 }
             }
         }
-    }
 
-    this->currentDocument_
-        = std::make_unique<DocumentImpl>(document,
-                                         this->documentInteractor_,
-                                         std::make_unique<Graph>(edges, nodes),
-                                         std::make_unique<MeshFactory>());
+        auto makeID = IDFactory();
+
+        for (const auto& node : nodes) {
+            for (const auto& toPtr : this->db_->edges(node->id())) {
+                for (const auto& toNode : nodes) {
+                    if (toNode->id() == toPtr) {
+                        const auto id = makeID();
+                        edges.emplace_back(std::make_shared<Edge>(id, node, toNode));
+                    }
+                }
+            }
         }
+
+        this->currentDocument_
+            = std::make_unique<DocumentImpl>(document,
+                                             this->documentInteractor_,
+                                             std::make_unique<Graph>(edges, nodes),
+                                             std::make_unique<MeshFactory>());
+    }
 
     const std::unique_ptr<Document>& ViewModelImpl::document() const {
         return this->currentDocument_;

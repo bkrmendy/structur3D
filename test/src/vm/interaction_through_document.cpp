@@ -107,6 +107,7 @@ TEST(ViewModelTests, CreateDocument) {
     vm->createDocument(name);
     EXPECT_EQ(vm->documents().size(), 1);
     EXPECT_EQ(vm->documents().at(0).name, name);
+    EXPECT_TRUE(vm->document() != nullptr);
 }
 
 TEST(ViewModelTests, OpenDocument) {
@@ -119,11 +120,9 @@ TEST(ViewModelTests, OpenDocument) {
     auto unionNode = S3D::SetOp{unionID, S3D::SetOperationType::Union};
 
     auto s1ID = makeID();
-    // NOLINTNEXTLINE readability-magic-numbers
     auto s1 = S3D::Sphere{s1ID, S3D::Coord{1,2,3}, S3D::Radius{6}};
 
     auto s2ID = makeID();
-    // NOLINTNEXTLINE readability-magic-numbers
     auto s2 = S3D::Sphere{s2ID, S3D::Coord{4,5,6}, S3D::Radius{9}};
 
     auto dummyIDs = std::vector<S3D::IDWithType>{
@@ -141,6 +140,7 @@ TEST(ViewModelTests, OpenDocument) {
     ON_CALL(*mockDB, edges(unionID))
         .WillByDefault(Return(std::vector<S3D::ID>{s1ID, s2ID}));
 
+    EXPECT_CALL(*mockNet, sync(_));
     ON_CALL(*mockNet, send(_)).WillByDefault(Return());
 
     auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
@@ -188,6 +188,7 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
     ON_CALL(*mockDB, edges(unionNode->id()))
             .WillByDefault(
                     Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
 
     EXPECT_CALL(*mockDB, entities(docId));
     EXPECT_CALL(*mockDB, sphere(sphere1->id()));
@@ -196,6 +197,7 @@ TEST(ViewModelTests, PropertyAccessorsOK) {
     EXPECT_CALL(*mockDB, edges(unionNode->id()));
     EXPECT_CALL(*mockDB, edges(sphere1->id()));
     EXPECT_CALL(*mockDB, edges(sphere2->id()));
+    EXPECT_CALL(*mockNet, sync(_));
 
     auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
 
@@ -234,6 +236,9 @@ TEST(ViewModelTests, UpdateSphereRadius) {
     ON_CALL(*mockDB, edges(unionNode->id()))
             .WillByDefault(
                     Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
+    EXPECT_CALL(*mockNet, sync(_));
 
     const auto new_radius = S3D::Radius{111};
 
@@ -282,6 +287,9 @@ TEST(ViewModelTests, UpdateSphereCoords) {
             .WillByDefault(
                     Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
 
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
+    EXPECT_CALL(*mockNet, sync(_));
+
     auto new_coord = S3D::Coord{100, 200, 300};
 
     EXPECT_CALL(*mockDB, upsert(sphere1->id(), new_coord, _));
@@ -312,12 +320,6 @@ TEST(ViewModelTests, CreateSetOp) {
     auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
     auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
 
-    auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
-    auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
-
-    std::vector<std::shared_ptr<S3D::Edge>> edges = { edge1, edge2 };
-    std::vector<std::shared_ptr<S3D::Node>> nodes = { unionNode, sphere1, sphere2 };
-
     ON_CALL(*mockDB, entities(docId))
             .WillByDefault(
                     Return(std::vector<S3D::IDWithType>{
@@ -334,6 +336,9 @@ TEST(ViewModelTests, CreateSetOp) {
     ON_CALL(*mockDB, edges(unionNode->id()))
             .WillByDefault(
                     Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
+    EXPECT_CALL(*mockNet, sync(_));
 
     auto node_id = makeId();
 
@@ -411,12 +416,6 @@ TEST(ViewModelTests, RemoveSetOp) {
     auto sphere1 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{1,2,3}, S3D::Radius{4});
     auto sphere2 = std::make_shared<S3D::Sphere>(makeId(), S3D::Coord{4,5,6}, S3D::Radius{7});
 
-    auto edge1 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere1);
-    auto edge2 = std::make_shared<S3D::Edge>(makeId(), unionNode, sphere2);
-
-    std::vector<std::shared_ptr<S3D::Edge>> edges = { edge1, edge2 };
-    std::vector<std::shared_ptr<S3D::Node>> nodes = { unionNode, sphere1, sphere2 };
-
     ON_CALL(*mockDB, entities(docId))
             .WillByDefault(
                     Return(std::vector<S3D::IDWithType>{
@@ -433,6 +432,9 @@ TEST(ViewModelTests, RemoveSetOp) {
     ON_CALL(*mockDB, edges(unionNode->id()))
             .WillByDefault(
                     Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
+    EXPECT_CALL(*mockNet, sync(_));
 
     EXPECT_CALL(*mockDB, remove(unionNode->id(), docId, _));
     EXPECT_CALL(*mockDB, retract(unionNode->id(), S3D::SetOperationType::Union, _));
@@ -474,6 +476,9 @@ TEST(ViewModelTests, RemoveSphere) {
     ON_CALL(*mockDB, edges(unionNode->id()))
             .WillByDefault(
                     Return(std::vector<S3D::ID>{sphere1->id(), sphere2->id()}));
+
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
+    EXPECT_CALL(*mockNet, sync(_));
 
     EXPECT_CALL(*mockDB, remove(sphere1->id(), docId, _));
     EXPECT_CALL(*mockDB, retract(sphere1->id(), sphere1->coord, _));
@@ -517,6 +522,9 @@ TEST(ViewModelTests, CreateEdge) {
             .WillByDefault(
                     Return(std::vector<S3D::ID>{sphere1->id()}));
 
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
+    EXPECT_CALL(*mockNet, sync(_));
+
     EXPECT_CALL(*mockDB, connect(unionNode->id(), sphere2->id(), _));
     EXPECT_CALL(*mockNet, send(_)).Times(1);
 
@@ -559,6 +567,9 @@ TEST(ViewModelTests, RemoveEdge) {
 
     EXPECT_CALL(*mockDB, disconnect(unionNode->id(), sphere1->id(), _));
     EXPECT_CALL(*mockNet, send(_)).Times(1);
+
+    ON_CALL(*mockNet, send(_)).WillByDefault(Return());
+    EXPECT_CALL(*mockNet, sync(_));
 
     auto vm = std::make_shared<S3D::ViewModelImpl>(std::move(mockDB), std::move(mockNet));
     vm->open(docId);
