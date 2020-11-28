@@ -24,8 +24,8 @@ namespace S3D {
         , message_{}
         , currentDocument_{nullptr} {
         this->databaseInteractor_ = this->makeDBInteractor();
-        this->documentInteractor_ = this->makeDocumentInteractor(this->databaseInteractor_);
-        this->networkInteractor_ = this->makeNetworkInteractor(this->databaseInteractor_);
+        this->documentInteractor_ = this->makeDocumentInteractor();
+        this->networkInteractor_ = this->makeNetworkInteractor();
         this->documents_ = this->db_->documents();
     }
 
@@ -126,7 +126,7 @@ namespace S3D {
             );
     }
 
-    std::shared_ptr<Interactor> ViewModelImpl::makeNetworkInteractor(std::shared_ptr<Interactor> dbInteractor) {
+    std::shared_ptr<Interactor> ViewModelImpl::makeNetworkInteractor() const {
         return std::make_shared<ModularInteractor>(
                 [&db = this->databaseInteractor_, &doc = this->document()](const std::shared_ptr<Node>& node, const ID& document, Timestamp timestamp) {
                     db->create(node, document, timestamp);
@@ -171,7 +171,7 @@ namespace S3D {
         );
     }
 
-    std::shared_ptr<Interactor> ViewModelImpl::makeDocumentInteractor(std::shared_ptr<Interactor> dbInteractor) {
+    std::shared_ptr<Interactor> ViewModelImpl::makeDocumentInteractor() const {
         return std::make_shared<ModularInteractor>(
                 [&db = this->databaseInteractor_, &net = this->network_](const std::shared_ptr<Node>& node, const ID& document, Timestamp now) {
                     db->create(node, document, now);
@@ -229,7 +229,6 @@ namespace S3D {
                                                                                                   Protocol::Change::Retract
                         }}, now};
                         net->send(message);
-
                     } else if (auto setOp = std::dynamic_pointer_cast<SetOp>(node)) {
                         auto message = Protocol::Message{Protocol::Payload{Protocol::CreateDelete{document,
                                                                                                   Protocol::Node{*setOp},

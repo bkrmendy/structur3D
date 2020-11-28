@@ -46,8 +46,8 @@ public:
     ViewModelImpl(std::unique_ptr<S3D::Database> db, std::unique_ptr<ClientEndpoint> network);
 
     std::shared_ptr<Interactor> makeDBInteractor() const;
-    std::shared_ptr<Interactor> makeNetworkInteractor(std::shared_ptr<Interactor> dbInteractor);
-    std::shared_ptr<Interactor> makeDocumentInteractor(std::shared_ptr<Interactor> dbInteractor);
+    std::shared_ptr<Interactor> makeNetworkInteractor() const;
+    std::shared_ptr<Interactor> makeDocumentInteractor() const;
 
     /*
      * Viewmodel interface

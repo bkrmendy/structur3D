@@ -65,7 +65,10 @@ namespace S3D {
 
     void Graph::remove(std::shared_ptr<Node> node) {
         this->nodes_.erase(
-                std::remove(this->nodes_.begin(), this->nodes_.end(), node),
+                std::remove_if(
+                        this->nodes_.begin(),
+                        this->nodes_.end(),
+                        [&node](auto nd) { return nd->id() == node->id(); }),
                 this->nodes_.end());
 
         this->edges_.erase(

@@ -25,19 +25,20 @@ namespace S3D {
     constexpr int is_deleted(bool deleted) { return deleted ? 1 : 0; }
 
     template <typename Table>
-    auto LastWriterWinsTimestamp(Table table, const std::string& eid) {
+    auto LastWriterWinsTimestamp(Table table, const std::string& entity_id) {
         return select(max(table.timestamp))
                 .from(table)
                 .where(table.deleted == is_deleted(false)
-                        && table.entity == eid)
+                        && table.entity == entity_id)
                 .group_by(table.entity);
     }
 
     template<typename Table>
-    auto CRDTCollectGarbage(Table table, const std::string& eid, Timestamp timestamp) {
+    auto CRDTCollectGarbage(Table table, const std::string& entity_id, Timestamp timestamp) {
         return remove_from(table)
                 .where(table.timestamp < timestamp
-                        && (table.entity == eid || table.deleted == is_deleted(true)));
+                        && (table.entity == entity_id
+                            || table.deleted == is_deleted(true)));
     }
 
     void DatabaseImpl::upsertI(const ID& entity, const Coord& coord, Timestamp timestamp, bool deleted) {
