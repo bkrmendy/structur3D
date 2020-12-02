@@ -3,6 +3,7 @@
 //
 
 #include <boost/beast/core.hpp>
+#include <utility>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/strand.hpp>
 
@@ -35,50 +36,23 @@ class session : public std::enable_shared_from_this<session>
     std::string port_;
 
 public:
-    session(net::io_context& ioc, const char* host, const char* port)
+    session(net::io_context& ioc, std::string host, std::string port)
             : resolver_(net::make_strand(ioc))
-            , host_{host}
-            , port_{port}
+            , host_{std::move(host)}
+            , port_{std::move(port)}
             , ws_(net::make_strand(ioc))
     {
     }
 
     void connect() {
         spdlog::info("Resolving host...");
-        resolver_.async_resolve(
-                host_,
-                port_,
-                beast::bind_front_handler(
-                        &session::on_resolve,
-                        shared_from_this()));
-    }
-
-    void on_resolve(beast::error_code ec, const tcp::resolver::results_type& results) {
-        if (ec) {
-            return fail(ec, "resolve");
-        }
+        const auto results = resolver_.resolve(host_, port_);
 
         beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
 
         spdlog::info("Connecting to host...");
-        beast::get_lowest_layer(ws_).async_connect(
-                results,
-                beast::bind_front_handler(
-                        &session::on_connect,
-                        shared_from_this()));
-    }
+        auto ep = beast::get_lowest_layer(ws_).connect(results);
 
-    void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep) {
-        if (ec) {
-            return fail(ec, "connect");
-        }
-
-        spdlog::info("Performing handshake with host...");
-        // Turn off the timeout on the tcp_stream, because
-        // the websocket stream has its own timeout system.
-        beast::get_lowest_layer(ws_).expires_never();
-
-        // Set suggested timeout settings for the websocket
         ws_.set_option(
                 websocket::stream_base::timeout::suggested(
                         beast::role_type::client));
@@ -97,28 +71,20 @@ public:
         // See https://tools.ietf.org/html/rfc7230#section-5.4
         host_ += ':' + std::to_string(ep.port());
 
-        // Perform the websocket handshake
-        ws_.async_handshake(host_, "/",
-                            beast::bind_front_handler(
-                                    &session::on_handshake,
-                                    shared_from_this()));
-    }
-
-    void on_handshake(beast::error_code ec) {
-        if (ec) {
-            return fail(ec, "handshake");
-        }
+        spdlog::info("Performing handshake with host...");
+        ws_.handshake(host_, "/");
 
         spdlog::info("Connected successfully!");
     }
 
     void send(std::string text) {
         spdlog::info("Sending message...");
-        ws_.async_write(
-                net::buffer(text),
-                beast::bind_front_handler(
-                        &session::on_write,
-                        shared_from_this()));
+        ws_.write(net::buffer(text));
+        spdlog::info("Message sent!");
+        auto bytes_read = ws_.read(buffer_);
+        spdlog::info("Message received!");
+        std::cout << beast::make_printable(buffer_.data()) << std::endl;
+        buffer_.consume(bytes_read);
     }
 
     void on_write(beast::error_code ec, std::size_t bytes_transferred) {
@@ -151,16 +117,7 @@ public:
 
     void close() {
         spdlog::info("Closing connection...");
-        ws_.async_close(websocket::close_code::normal,
-                        beast::bind_front_handler(
-                                &session::on_close,
-                                shared_from_this()));
-    }
-
-    void on_close(beast::error_code ec) {
-        if (ec) {
-            return fail(ec, "close");
-        }
+        ws_.close(websocket::close_code::normal);
 
         spdlog::info("Connection closed!");
     }
@@ -172,14 +129,11 @@ public:
 
 int main()
 {
-    const auto host = "127.0.0.1";
-    const auto port = "3000";
-
     // The io_context is required for all I/O
     net::io_context ioc;
 
     std::shared_ptr<int> state = std::make_shared<int>(0);
-    std::shared_ptr<session> sesh = std::make_shared<session>(ioc, host, port);
+    std::shared_ptr<session> sesh = std::make_shared<session>(ioc, "127.0.0.1", "3000");
     sesh->connect();
 
     bool running = true;
