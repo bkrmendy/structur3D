@@ -4,14 +4,13 @@
 
 #include "gtest/gtest.h"
 
-#include "data/Name.h"
 #include "utils/Serializator.h"
 #include "utils/attribute_serialization.h"
 
 // TODO: make it compile
 //TEST(SerializationTest, IDRoundTrip) {
 //    auto make_id = S3D::IDFactory();
-//    auto uid = make_id();
+//    S3D::ID uid = make_id();
 //
 //    S3D::Serializator seri{};
 //

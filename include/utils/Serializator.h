@@ -9,6 +9,8 @@
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/traits/vector.h>
 
+#include "utils/attribute_serialization.h"
+
 namespace S3D {
     class Serializator {
         using Buffer = std::vector<uint8_t>;

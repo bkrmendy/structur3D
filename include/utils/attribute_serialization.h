@@ -7,9 +7,8 @@
 
 #include <bitsery/bitsery.h>
 #include <bitsery/traits/string.h>
-#include <bitsery/traits/array.h>
 
-#include <data/Name.h>
+#include "data/Name.h"
 #include "data/Base.h"
 #include "data/SetOperationType.h"
 #include "data/Coord.h"
@@ -20,11 +19,6 @@ namespace S3D {
     void serialize(S& s, ID& uid) {
         s.container<16>(uid.data);;
     }
-    template <typename S>
-    void serialize(S& s, boost::uuids::uuid uid) {
-        s.container<16>(uid.data);;
-    }
-
 
     template <typename S>
     void serialize(S& s, SetOperationType& setOp) {
