@@ -3,6 +3,10 @@ project(structur3d_base)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# ---------------
+# Globbed sources
+# ---------------
+
 file(GLOB_RECURSE five_src src/five/*.cpp)
 
 file(GLOB sqlpp11_connector_sqlite_src
@@ -11,7 +15,11 @@ file(GLOB sqlpp11_connector_sqlite_src
 
 file(GLOB_RECURSE bitsery_src src/bitsery/*.h)
 
-add_library(structur3d_base SHARED
+# ----------
+# STRUCTUR3D
+# ----------
+
+add_library(structur3d SHARED
         ${five_src}
         ${sqlpp11_connector_sqlite_src}
         ${bitsery_src}
@@ -34,19 +42,20 @@ add_library(structur3d_base SHARED
         src/base/Radius.cpp
 
         src/wire/ClientImpl.cpp
+        src/wire/ServerController.cpp
 
         src/mesh/MeshFactory.cpp
 
         src/utils/random_string.cpp src/data/Name.cpp
-
         src/utils/approximately_equal.cpp
+
         src/interactor/ModularInteractor.cpp
-        include/wire/ServerController.h src/wire/ServerController.cpp)
+)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})
 
-target_include_directories(structur3d_base PUBLIC
+target_include_directories(structur3d PUBLIC
         ${PNG_INCLUDE_DIR}
         thirdparty
         include
@@ -55,7 +64,11 @@ target_include_directories(structur3d_base PUBLIC
         /usr/local/include/eigen3)
 
 link_directories(/usr/local/lib/)
-target_link_libraries(structur3d_base LINK_PUBLIC sqlite3 ${LIBS})
+target_link_libraries(structur3d LINK_PUBLIC sqlite3 ${LIBS})
+
+# ----
+# TEST
+# ----
 
 enable_testing()
 add_subdirectory(test)
