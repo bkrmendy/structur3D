@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <unordered_set>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -17,9 +18,33 @@ namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 using namespace std;
 
+class websocket_session;
+
+class shared_state {
+    std::unordered_set<websocket_session*> sessions_;
+
+public:
+    shared_state() : sessions_{} {}
+
+    void join(websocket_session& session) {
+        sessions_.insert(&session);
+    }
+
+    void leave(websocket_session& session) {
+        sessions_.erase(&session);
+    }
+
+    void send(std::string message){
+        auto const ss = std::make_shared<std::string const>(std::move(message));
+
+        for(const auto& session : sessions_) {
+            session->send(ss);
+        }
+    }
+};
+
 // Echoes back all received WebSocket messages
-void
-do_session(tcp::socket& socket)
+void do_session(tcp::socket& socket)
 {
     try
     {
@@ -71,7 +96,7 @@ int main()
     try
     {
         auto const address = net::ip::make_address("127.0.0.1");
-        auto const port = static_cast<unsigned short>(std::atoi("3000"));
+        auto const port = static_cast<unsigned short>(std::stoi("3000"));
 
         // The io_context is required for all I/O
         net::io_context ioc{1};

@@ -81,10 +81,10 @@ public:
         spdlog::info("Sending message...");
         ws_.write(net::buffer(text));
         spdlog::info("Message sent!");
-        auto bytes_read = ws_.read(buffer_);
+        ws_.read(buffer_);
         spdlog::info("Message received!");
         std::cout << beast::make_printable(buffer_.data()) << std::endl;
-        buffer_.consume(bytes_read);
+        buffer_.consume(buffer_.size());
     }
 
     void on_write(beast::error_code ec, std::size_t bytes_transferred) {
