@@ -46,6 +46,22 @@ namespace rc {
 }
 
 RC_GTEST_PROP(SerializationTest,
+              NameRoundTrip,
+              (S3D::Name name)) {
+    S3D::Serializator seri{};
+
+    auto buffer = seri.make_buffer();
+
+    auto size = seri.serialize(buffer, name);
+
+    S3D::Name other{};
+
+    auto success = seri.deserialize(buffer, other, size);
+
+    RC_ASSERT(success && name.get() == other.get());
+}
+
+RC_GTEST_PROP(SerializationTest,
               CoordRoundTrip,
               (S3D::Coord coord)) {
     S3D::Serializator seri{};

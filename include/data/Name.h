@@ -10,8 +10,8 @@
 
 namespace S3D {
     class Name {
-        std::string value_;
     public:
+        std::string value_;
         static std::string allowedCharacters;
 
         Name() = default;

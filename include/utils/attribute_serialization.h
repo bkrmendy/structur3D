@@ -45,8 +45,7 @@ namespace S3D {
 
     template <typename S>
     void serialize(S& s, Name& name) {
-        auto str = name.get();
-        s.template text<sizeof(std::string::value_type)>(str, 1000);
+        s.template text<sizeof(std::string::value_type)>(name.value_, 1000);
     }
 }
 
