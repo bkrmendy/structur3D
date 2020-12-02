@@ -37,6 +37,9 @@ namespace S3D {
                 },
                 [this, &message](const Protocol::CreateDelete& create) {
                     this->process(create, message.timestamp);
+                },
+                [this, &message](const Protocol::Confirm& confirm) {
+                    // TODO
                 }
         }, message.payload);
     }

@@ -114,13 +114,17 @@ namespace S3D {
             });
         }
 
-        using Payload = std::variant<ConnectDisconnect, Update, CreateDelete>;
+        struct Confirm {
+            int64_t placeholder = 0;
+        };
+        using Payload = std::variant<ConnectDisconnect, Update, CreateDelete, Confirm>;
         template<typename S>
         void serialize(S& s, Payload& payload) {
             s.ext(payload, bitsery::ext::StdVariant{
                 [](S& s, CreateDelete& create) { serialize(s, create); },
                 [](S& s, ConnectDisconnect& edge) { serialize(s, edge); },
-                [](S& s, Update & update) { serialize(s, update); }
+                [](S& s, Update& update) { serialize(s, update); },
+                [](S& s, Confirm& confirm) { serialize(s, confirm.placeholder); }
             });
         }
 
