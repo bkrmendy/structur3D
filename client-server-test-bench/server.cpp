@@ -1,6 +1,9 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/ip/tcp.hpp>
+
+#include <spdlog/spdlog.h>
+
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -52,12 +55,12 @@ do_session(tcp::socket& socket)
     {
         // This indicates that the session was closed
         if (se.code() != websocket::error::closed) {
-            std::cerr << "Error: " << se.code().message() << std::endl;
+            spdlog::error(se.code().message());
         }
     }
     catch(std::exception const& e)
     {
-        std::cerr << "Error: " << e.what() << std::endl;
+        spdlog::error(e.what());
     }
 }
 

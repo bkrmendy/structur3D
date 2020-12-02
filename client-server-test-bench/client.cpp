@@ -5,6 +5,9 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/strand.hpp>
+
+#include <spdlog/spdlog.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -19,7 +22,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 //------------------------------------------------------------------------------
 
 void fail(beast::error_code ec, char const* what) {
-    std::cerr << what << ": " << ec.message() << "\n";
+    spdlog::error(what);
 }
 
 // Sends a WebSocket message and prints the response
@@ -41,19 +44,12 @@ public:
     }
 
     void connect() {
+        spdlog::info("Resolving host...");
         resolver_.async_resolve(
                 host_,
                 port_,
                 beast::bind_front_handler(
                         &session::on_resolve,
-                        shared_from_this()));
-    }
-
-    void send(std::string text) {
-        ws_.async_write(
-                net::buffer(text),
-                beast::bind_front_handler(
-                        &session::on_write,
                         shared_from_this()));
     }
 
@@ -64,6 +60,7 @@ public:
 
         beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
 
+        spdlog::info("Connecting to host...");
         beast::get_lowest_layer(ws_).async_connect(
                 results,
                 beast::bind_front_handler(
@@ -76,6 +73,7 @@ public:
             return fail(ec, "connect");
         }
 
+        spdlog::info("Performing handshake with host...");
         // Turn off the timeout on the tcp_stream, because
         // the websocket stream has its own timeout system.
         beast::get_lowest_layer(ws_).expires_never();
@@ -110,6 +108,17 @@ public:
         if (ec) {
             return fail(ec, "handshake");
         }
+
+        spdlog::info("Connected successfully!");
+    }
+
+    void send(std::string text) {
+        spdlog::info("Sending message...");
+        ws_.async_write(
+                net::buffer(text),
+                beast::bind_front_handler(
+                        &session::on_write,
+                        shared_from_this()));
     }
 
     void on_write(beast::error_code ec, std::size_t bytes_transferred) {
@@ -118,6 +127,8 @@ public:
         if (ec) {
             return fail(ec, "write");
         }
+
+        spdlog::info("Message sent!");
 
         // Read a message into our buffer
         ws_.async_read(
@@ -129,16 +140,17 @@ public:
 
     void on_read(beast::error_code ec, std::size_t bytes_transferred) {
         boost::ignore_unused(bytes_transferred);
-
         if (ec) {
             return fail(ec, "read");
         }
 
+        spdlog::info("Incoming message!");
         ws_.read(buffer_);
         std::cout << beast::make_printable(buffer_.data()) << std::endl;
     }
 
     void close() {
+        spdlog::info("Closing connection...");
         ws_.async_close(websocket::close_code::normal,
                         beast::bind_front_handler(
                                 &session::on_close,
@@ -149,6 +161,8 @@ public:
         if (ec) {
             return fail(ec, "close");
         }
+
+        spdlog::info("Connection closed!");
     }
 };
 
