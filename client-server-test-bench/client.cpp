@@ -29,28 +29,35 @@ class session : public std::enable_shared_from_this<session>
     websocket::stream<beast::tcp_stream> ws_;
     beast::flat_buffer buffer_;
     std::string host_;
-    std::string text_;
+    std::string port_;
 
 public:
-    explicit session(net::io_context& ioc)
+    session(net::io_context& ioc, const char* host, const char* port)
             : resolver_(net::make_strand(ioc))
+            , host_{host}
+            , port_{port}
             , ws_(net::make_strand(ioc))
     {
     }
 
-    void run(char const* host, char const* port, char const* text) {
-        host_ = host;
-        text_ = text;
-
+    void connect() {
         resolver_.async_resolve(
-                host,
-                port,
+                host_,
+                port_,
                 beast::bind_front_handler(
                         &session::on_resolve,
                         shared_from_this()));
     }
 
-    void on_resolve(beast::error_code ec, tcp::resolver::results_type results) {
+    void send(std::string text) {
+        ws_.async_write(
+                net::buffer(text),
+                beast::bind_front_handler(
+                        &session::on_write,
+                        shared_from_this()));
+    }
+
+    void on_resolve(beast::error_code ec, const tcp::resolver::results_type& results) {
         if (ec) {
             return fail(ec, "resolve");
         }
@@ -103,13 +110,6 @@ public:
         if (ec) {
             return fail(ec, "handshake");
         }
-
-        // Send the message
-        ws_.async_write(
-                net::buffer(text_),
-                beast::bind_front_handler(
-                        &session::on_write,
-                        shared_from_this()));
     }
 
     void on_write(beast::error_code ec, std::size_t bytes_transferred) {
@@ -118,8 +118,6 @@ public:
         if (ec) {
             return fail(ec, "write");
         }
-
-        ws_.write(net::buffer(text_));
 
         // Read a message into our buffer
         ws_.async_read(
@@ -138,8 +136,9 @@ public:
 
         ws_.read(buffer_);
         std::cout << beast::make_printable(buffer_.data()) << std::endl;
+    }
 
-        // Close the WebSocket connection
+    void close() {
         ws_.async_close(websocket::close_code::normal,
                         beast::bind_front_handler(
                                 &session::on_close,
@@ -166,23 +165,24 @@ int main()
     net::io_context ioc;
 
     std::shared_ptr<int> state = std::make_shared<int>(0);
+    std::shared_ptr<session> sesh = std::make_shared<session>(ioc, host, port);
+    sesh->connect();
 
-//    bool running = true;
-//
-//    while (running) {
-//        int message;
-//        std::cin >> message;
-//
-//        if (!std::cin.good()) { continue; }
-//
-//        if (message == 0) { running = false; }
-//        else {  }
-//    }
+    bool running = true;
 
-    std::make_shared<session>(ioc)->run(host, port, "Hello there!");
+    while (running) {
+        std::string message;
+        std::getline(std::cin, message);
+
+        if (!std::cin.good()) { running = false; }
+        else {
+            sesh->send(message);
+        }
+    }
 
     ioc.run();
 
+    sesh->close();
     std::cout << "Goodbye" << std::endl;
 
     return EXIT_SUCCESS;

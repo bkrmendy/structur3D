@@ -51,8 +51,9 @@ do_session(tcp::socket& socket)
     catch(beast::system_error const& se)
     {
         // This indicates that the session was closed
-        if(se.code() != websocket::error::closed)
+        if (se.code() != websocket::error::closed) {
             std::cerr << "Error: " << se.code().message() << std::endl;
+        }
     }
     catch(std::exception const& e)
     {
