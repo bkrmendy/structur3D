@@ -145,35 +145,5 @@ namespace S3D {
             s.value8b(message.timestamp);
         };
     }
-
-    namespace Protocol {
-        template <typename S>
-        void serialize(S& s, ID& uid) {
-            s.container(uid.data, [](S& s, uint8_t byte) { s.value1b(byte); });;
-        }
-
-        template <typename S>
-        void serialize(S& s, SetOperationType& setOp) {
-            s.value4b(setOp);
-        }
-
-        template <typename S>
-        void serialize(S& s, Coord& coord) {
-            s.value4b(coord.x);
-            s.value4b(coord.y);
-            s.value4b(coord.z);
-        }
-
-        template <typename S>
-        void serialize(S& s, Radius& radius) {
-            s.value4b(radius);
-        }
-
-        template <typename S>
-        void serialize(S& s, std::string str) {
-            s(str);
-        }
-
-    }
 }
 #endif //STRUCTUR3D_BASE_MESSAGE_H
