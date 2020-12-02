@@ -7,7 +7,7 @@
 
 namespace S3D {
     void ClientImpl::sync(std::vector<Protocol::Message>& message) const {
-
+        // TODO: implement
     }
 
     void ClientImpl::send(Protocol::Message& message) const {
