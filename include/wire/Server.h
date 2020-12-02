@@ -11,9 +11,11 @@
 
 namespace S3D {
     struct Server {
-        virtual void sync(ID& document, Timestamp& timestamp, std::vector<Protocol::Message>& messages) = 0;
-        virtual void receive(Protocol::Message& message) = 0;
-        virtual void broadcast(Protocol::Message& message) = 0;
+        virtual void sync(ID& document, Timestamp& timestamp, std::vector<Protocol::Message>& messages) const = 0;
+        virtual void receive(Protocol::Message& message) const = 0;
+        virtual void broadcast(Protocol::Message& message) const = 0;
+
+        virtual ~Server() = default;
     };
 }
 

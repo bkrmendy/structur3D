@@ -41,7 +41,7 @@ add_library(structur3d_base SHARED
 
         src/utils/approximately_equal.cpp
         src/interactor/ModularInteractor.cpp
-        )
+        include/wire/ServerController.h src/wire/ServerController.cpp)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})
