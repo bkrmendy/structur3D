@@ -50,7 +50,7 @@ add_library(structur3d SHARED
         src/utils/approximately_equal.cpp
 
         src/interactor/ModularInteractor.cpp
-)
+        client-server-test-bench/server.cpp client-server-test-bench/client.cpp)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})
@@ -72,3 +72,9 @@ target_link_libraries(structur3d LINK_PUBLIC sqlite3 ${LIBS})
 
 enable_testing()
 add_subdirectory(test)
+
+# -----------------
+# TOY CLIENT/SERVER
+# -----------------
+
+add_subdirectory(client-server-test-bench)
