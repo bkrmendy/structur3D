@@ -97,14 +97,10 @@ namespace S3D {
         void serialize(S& s, Update& update) {
             serialize(s, update.uid);
             s.ext(update.attribute, bitsery::ext::StdVariant {
-                    [](S& s, Coord& coord) {
-                        serialize(s, coord);
-                    },
+                    [](S& s, Coord& coord) { serialize(s, coord); },
                     [](S& s, Radius& radius) { serialize(s, radius); },
                     [](S& s, SetOperationType& setOp) { serialize(s, setOp); },
-                    [](S& s, std::string& str) {
-                        s(str);
-                    },
+                    [](S& s, Name& name) { s(name.get()); },
                     [](S& s, std::tuple<NodeType, ID>& info) {
                         s.ext(info, bitsery::ext::StdTuple{
                                 [](S& s, NodeType& type) { s.value4b(type); },

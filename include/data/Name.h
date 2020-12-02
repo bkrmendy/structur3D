@@ -14,9 +14,11 @@ namespace S3D {
     public:
         static std::string allowedCharacters;
 
+        Name() = default;
         explicit Name(const std::string& name);
 
         const std::string& get() const;
+        std::string get();
     };
 
     bool operator==(const Name& left, const Name& right);

@@ -21,14 +21,15 @@ namespace S3D {
         }
 
         template<typename T>
-        void serialize(Buffer& to, T& thing) {
-            bitsery::quickSerialization(to, thing);
+        size_t serialize(Buffer& to, T& thing) {
+            auto size = bitsery::quickSerialization<OutputAdapter>(to, thing);
+            return size;
         }
 
 
         template<typename T>
-        bool deserialize(Buffer& from, T& to, size_t size) {
-            auto state = bitsery::quickDeserialization({from.begin(), size}, to);
+        bool deserialize(Buffer& from, T& to, unsigned int size) {
+            auto state = bitsery::quickDeserialization<InputAdapter>({ from.begin(), size }, to);
             return state.first == bitsery::ReaderError::NoError && state.second;
         }
     };

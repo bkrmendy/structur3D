@@ -23,6 +23,10 @@ namespace S3D {
         return value_;
     }
 
+    std::string Name::get() {
+        return value_;
+    }
+
     bool operator==(const Name& left, const Name& right) {
         return left.get() == right.get();
     }

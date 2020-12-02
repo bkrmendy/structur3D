@@ -5,6 +5,11 @@
 #ifndef STRUCTUR3D_BASE_ATTRIBUTE_SERIALIZATION_H
 #define STRUCTUR3D_BASE_ATTRIBUTE_SERIALIZATION_H
 
+#include <bitsery/bitsery.h>
+#include <bitsery/traits/string.h>
+#include <bitsery/traits/array.h>
+
+#include <data/Name.h>
 #include "data/Base.h"
 #include "data/SetOperationType.h"
 #include "data/Coord.h"
@@ -13,8 +18,13 @@
 namespace S3D {
     template <typename S>
     void serialize(S& s, ID& uid) {
-        s.container(uid.data, [](S& s, uint8_t byte) { s.value1b(byte); });;
+        s.container<16>(uid.data);;
     }
+    template <typename S>
+    void serialize(S& s, boost::uuids::uuid uid) {
+        s.container<16>(uid.data);;
+    }
+
 
     template <typename S>
     void serialize(S& s, SetOperationType& setOp) {
@@ -34,8 +44,9 @@ namespace S3D {
     }
 
     template <typename S>
-    void serialize(S& s, std::string str) {
-        s(str);
+    void serialize(S& s, Name& name) {
+        auto str = name.get();
+        s.template text<sizeof(std::string::value_type)>(str, 1000);
     }
 }
 
