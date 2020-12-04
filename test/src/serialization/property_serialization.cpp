@@ -43,6 +43,13 @@ namespace rc {
                                 S3D::SetOperationType::Subtraction);
         }
     };
+
+    template<>
+    struct Arbitrary<S3D::Radius> {
+        static Gen<S3D::Radius> arbitrary() {
+            return gen::construct<S3D::Radius>(gen::positive<float>());
+        }
+    };
 }
 
 RC_GTEST_PROP(SerializationTest,
@@ -59,6 +66,22 @@ RC_GTEST_PROP(SerializationTest,
     auto success = seri.deserialize(buffer, other, size);
 
     RC_ASSERT(success && name.get() == other.get());
+}
+
+RC_GTEST_PROP(SerializationTest,
+              RadiusRoundTrip,
+              (S3D::Radius radius)) {
+    S3D::Serializator seri{};
+
+    auto buffer = seri.make_buffer();
+
+    auto size = seri.serialize(buffer, radius);
+
+    S3D::Radius other{0};
+
+    auto success = seri.deserialize(buffer, other, size);
+
+    RC_ASSERT(success && radius.magnitude() == other.magnitude());
 }
 
 RC_GTEST_PROP(SerializationTest,

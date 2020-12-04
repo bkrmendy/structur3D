@@ -6,6 +6,7 @@
 #define STRUCTUR3D_BASE_ATTRIBUTE_SERIALIZATION_H
 
 #include <bitsery/bitsery.h>
+#include <bitsery/traits/array.h>
 #include <bitsery/traits/string.h>
 
 #include "data/Name.h"
@@ -16,8 +17,8 @@
 
 namespace S3D {
     template <typename S>
-    void serialize(S& s, ID& uid) {
-        s.container<16>(uid.data);;
+    void serialize(S& s, std::string& str) {
+        s.template text<sizeof(std::string::value_type)>(str, 1000);
     }
 
     template <typename S>
@@ -34,7 +35,7 @@ namespace S3D {
 
     template <typename S>
     void serialize(S& s, Radius& radius) {
-        s.value4b(radius);
+        s.value4b(radius.magnitude());
     }
 
     template <typename S>

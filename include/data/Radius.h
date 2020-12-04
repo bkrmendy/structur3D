@@ -11,6 +11,7 @@ namespace S3D {
 
     public:
         explicit Radius(float magnitude);
+        float& magnitude();
         float magnitude() const;
     };
 
