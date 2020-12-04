@@ -43,3 +43,11 @@ CREATE TABLE IF NOT EXISTS name (
     name TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS attribute (
+    deleted INTEGER NOT NULL DEFAULT 0,
+    timestamp UNSIGNED BIG INT NOT NULL,
+    entity TEXT NOT NULL,
+    attrib BLOB NOT NULL,
+    size UNSIGNED INT NOT NULL
+);
+
