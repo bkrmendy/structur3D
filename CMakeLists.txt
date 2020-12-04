@@ -41,7 +41,7 @@ add_library(structur3d_base SHARED
 
         src/utils/approximately_equal.cpp
         src/interactor/ModularInteractor.cpp
-        include/wire/ServerController.h src/wire/ServerController.cpp include/db/Column.h include/utils/Serializator.h include/utils/attribute_serialization.h)
+        include/wire/ServerController.h src/wire/ServerController.cpp include/db/Column.h include/utils/Serializator.h include/utils/attribute_serialization.h include/utils/to_underlying.h)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})

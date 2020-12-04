@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS name (
 
 CREATE TABLE IF NOT EXISTS attribute (
     deleted INTEGER NOT NULL DEFAULT 0 CHECK (deleted = 0 OR deleted = 1),
+    colid INTEGER NOT NULL,
     timestamp UNSIGNED BIG INT NOT NULL,
     entity TEXT NOT NULL,
     attrib BLOB NOT NULL,

@@ -601,6 +601,22 @@ namespace Schema
       };
       using _traits = sqlpp::make_traits<sqlpp::integer>;
     };
+    struct Colid
+    {
+      struct _alias_t
+      {
+        static constexpr const char _literal[] =  "colid";
+        using _name_t = sqlpp::make_char_sequence<sizeof(_literal), _literal>;
+        template<typename T>
+        struct _member_t
+          {
+            T colid;
+            T& operator()() { return colid; }
+            const T& operator()() const { return colid; }
+          };
+      };
+      using _traits = sqlpp::make_traits<sqlpp::integer, sqlpp::tag::require_insert>;
+    };
     struct Timestamp
     {
       struct _alias_t
@@ -669,6 +685,7 @@ namespace Schema
 
   struct Attribute: sqlpp::table_t<Attribute,
                Attribute_::Deleted,
+               Attribute_::Colid,
                Attribute_::Timestamp,
                Attribute_::Entity,
                Attribute_::Attrib,

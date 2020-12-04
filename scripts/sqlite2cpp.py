@@ -37,6 +37,8 @@ NAMESPACE = 'sqlpp'
 
 # map sqlite3 types
 types = {
+    'unsigned int': 'integer',
+    'unsigned big int': 'integer',
     'integer': 'integer',
     'text': 'text',
     'blob': 'blob',
