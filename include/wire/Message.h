@@ -5,7 +5,10 @@
 #ifndef STRUCTUR3D_BASE_MESSAGE_H
 #define STRUCTUR3D_BASE_MESSAGE_H
 
+#include <utility>
+
 #include <bitsery/bitsery.h>
+#include <bitsery/traits/array.h>
 #include <bitsery/ext/compact_value.h>
 #include <bitsery/ext/std_variant.h>
 #include <bitsery/ext/std_tuple.h>
@@ -18,9 +21,10 @@
 #include <data/Sphere.h>
 #include <data/SetOp.h>
 
-#include <utility>
 #include <db/NodeType.h>
 #include <data/Name.h>
+
+#include <utils/attribute_serialization.h>
 
 namespace S3D {
     namespace Protocol {
@@ -100,11 +104,11 @@ namespace S3D {
                     [](S& s, Coord& coord) { serialize(s, coord); },
                     [](S& s, Radius& radius) { serialize(s, radius); },
                     [](S& s, SetOperationType& setOp) { serialize(s, setOp); },
-                    [](S& s, Name& name) { s(name.get()); },
+                    [](S& s, Name& name) { serialize(s, name); },
                     [](S& s, std::tuple<NodeType, ID>& info) {
                         s.ext(info, bitsery::ext::StdTuple{
                                 [](S& s, NodeType& type) { s.value4b(type); },
-                                [](S& s, ID& id) { s.container(id.data, [](S& s, uint8_t byte) { s.value1b(byte); }); }
+                                [](S& s, ID& uid) { serialize(s, uid); }
                         });
                     }
             });

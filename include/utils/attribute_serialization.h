@@ -7,7 +7,13 @@
 
 #include <bitsery/bitsery.h>
 #include <bitsery/traits/array.h>
+#include <bitsery/ext/compact_value.h>
+#include <bitsery/ext/std_variant.h>
+#include <bitsery/ext/std_tuple.h>
 #include <bitsery/traits/string.h>
+
+#include <bitsery/brief_syntax.h>
+#include <bitsery/brief_syntax/string.h>
 
 #include "data/Name.h"
 #include "data/Base.h"
@@ -16,9 +22,9 @@
 #include "data/Radius.h"
 
 namespace S3D {
-    template <typename S>
-    void serialize(S& s, std::string& str) {
-        s.template text<sizeof(std::string::value_type)>(str, 1000);
+    template<typename S>
+    void serialize(S& s, ID& uid) {
+        s.container(uid.data, [](S& s, uint8_t byte) { s.value1b(byte); });
     }
 
     template <typename S>

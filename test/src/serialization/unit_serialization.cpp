@@ -4,10 +4,11 @@
 
 #include "gtest/gtest.h"
 
+#include "wire/Message.h"
 #include "utils/Serializator.h"
 #include "utils/attribute_serialization.h"
 
-// TODO: make it compile
+// 12. 04 could not make it work TODO: make it work
 //TEST(SerializationTest, IDRoundTrip) {
 //    auto make_id = S3D::IDFactory();
 //    S3D::ID uid = make_id();
