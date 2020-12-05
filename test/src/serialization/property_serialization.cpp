@@ -39,8 +39,7 @@ namespace rc {
     struct Arbitrary<S3D::SetOperationType> {
         static Gen<S3D::SetOperationType> arbitrary() {
             return gen::element(S3D::SetOperationType::Union,
-                                S3D::SetOperationType::Intersection,
-                                S3D::SetOperationType::Subtraction);
+                                S3D::SetOperationType::Intersection);
         }
     };
 

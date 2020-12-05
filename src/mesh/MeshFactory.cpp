@@ -62,11 +62,6 @@ namespace S3D {
                 return aggregateOf(trees, [](auto acc, auto elem) { return min(acc, elem); });
             }
 
-            if (setop->type == SetOperationType::Subtraction) {
-                // TODO: implement
-                return std::nullopt;
-            }
-
             if (setop->type == SetOperationType::Intersection) {
                 return aggregateOf(trees, [](auto acc, auto elem) { return max(acc, elem); });
             }

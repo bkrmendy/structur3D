@@ -14,7 +14,6 @@
 namespace S3D {
 enum class SetOperationType {
     Union,
-    Subtraction,
     Intersection
 };
 
