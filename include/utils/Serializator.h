@@ -13,10 +13,10 @@
 
 namespace S3D {
     class Serializator {
+    public:
         using Buffer = std::vector<uint8_t>;
         using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
         using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
-    public:
 
         Buffer make_buffer() {
             return Buffer{};

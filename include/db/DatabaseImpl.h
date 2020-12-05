@@ -24,8 +24,6 @@ public:
     static std::vector<std::string> tables();
     static std::vector<std::string> indices();
 
-    static Name preferredNameOf(const Name& left, const Name& right);
-
     explicit DatabaseImpl(std::unique_ptr<sql::connection> db) : db{std::move(db)} {
         for (const auto& column : DatabaseImpl::tables()) {
             this->db->execute(column);

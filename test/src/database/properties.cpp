@@ -10,7 +10,9 @@
 #include "utils/approximately_equal.h"
 #include "data/Base.h"
 #include "data/Coord.h"
+
 #include "db/DatabaseImpl.h"
+#include "db/attribute_priority.h"
 
 
 namespace rc {
@@ -151,7 +153,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
 
     S3D::Name latestName = std::get<1>(latestEntries.at(0));
     for (const auto& entry : latestEntries) {
-        latestName = S3D::DatabaseImpl::preferredNameOf(std::get<1>(entry), latestName);
+        latestName = preferred_name(std::get<1>(entry), latestName);
     }
 
     RC_ASSERT(nameFromDb == latestName);
@@ -160,7 +162,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
 RC_GTEST_PROP(DatabasePropertyTests,
               PreferredNamePredicateCommutative,
               (const S3D::Name& left, const S3D::Name& right)) {
-    RC_ASSERT(S3D::DatabaseImpl::preferredNameOf(left, right) == S3D::DatabaseImpl::preferredNameOf(right, left));
+    RC_ASSERT(preferred_name(left, right) == preferred_name(right, left));
 }
 
 RC_GTEST_PROP(DatabasePropertyTests,

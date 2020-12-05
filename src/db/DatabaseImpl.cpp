@@ -16,6 +16,7 @@
 #include "boost/uuid/uuid_io.hpp"
 
 #include <sqlpp11/sqlpp11.h>
+#include <db/attribute_priority.h>
 #include "sqlpp11/remove.h"
 #include "sqlpp11/insert.h"
 #include "sqlpp11/transaction.h"
@@ -236,16 +237,17 @@ namespace S3D {
                                 && nameTable.timestamp == LastWriterWinsTimestamp(nameTable, documentRow.document)));
 
             if (!nameLookup.empty()) {
-                auto latestName = Name{nameLookup.front().name};
+                auto latest_name = Name{nameLookup.front().name};
 
                 for (const auto& row : nameLookup) {
-                    latestName = DatabaseImpl::preferredNameOf(latestName, Name{row.name});
+                    auto this_name = Name{row.name};
+                    latest_name = preferred_name(latest_name, this_name);
                 }
 
                 std::stringstream stream{documentRow.document};
                 ID uid_temp;
                 stream >> uid_temp;
-                names.emplace_back(uid_temp, latestName);
+                names.emplace_back(uid_temp, latest_name);
             }
         }
 
@@ -474,13 +476,6 @@ namespace S3D {
         auto name = "CREATE INDEX name_index ON name(entity);";
 
         return { edges, radius, coord, setOpType, document, name };
-    }
-
-    Name DatabaseImpl::preferredNameOf(const Name &left, const Name &right) {
-        if (left.get() < right.get()) {
-            return left;
-        }
-        return right;
     }
 }
 

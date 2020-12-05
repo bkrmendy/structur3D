@@ -9,6 +9,7 @@
 #include "sqlpp11/sqlite3/sqlite3.h"
 
 #include "db/column/Column.h"
+#include "db/attribute_priority.h"
 
 namespace S3D {
     class ColumnDB {
@@ -27,7 +28,7 @@ namespace S3D {
 
         constexpr static const char* index_entity = R"(CREATE INDEX attribute_entity_index ON attribute(entity);)";
         constexpr static const char* index_timestamp = R"(CREATE INDEX attribute_timestamp_index ON attribute(entity);)";
-        constexpr static const char* index_colid = R"(CREATE INDEX attribute_timestamp_index ON attribute(entity);)";
+        constexpr static const char* index_colid = R"(CREATE INDEX attribute_colid_index ON attribute(colid);)";
 
     public:
         const Column<ColumnAttribute::Coordinate, Coord> coordinate;
@@ -39,10 +40,10 @@ namespace S3D {
 
         explicit ColumnDB(std::shared_ptr<sql::connection> db)
             : db_{std::move(db)}
-            , coordinate{db_}
-            , radius{db_}
-            , name{db_}
-            , setOperationType{db_} {
+            , coordinate{db_, preferred_coord}
+            , radius{db_, preferred_radius}
+            , name{db_, preferred_name}
+            , setOperationType{db_, preferred_setoperation_type} {
             db_->execute(schema);
             db_->execute(index_entity);
             db_->execute(index_timestamp);

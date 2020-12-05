@@ -7,10 +7,13 @@
 
 namespace S3D {
     class Radius {
-        float magnitude_;
+        float magnitude_{0};
 
     public:
+        Radius() = default;
+
         explicit Radius(float magnitude);
+
         float& magnitude();
         float magnitude() const;
     };
