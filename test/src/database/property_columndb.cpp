@@ -33,6 +33,14 @@ namespace rc {
                                     gen::elementOf(S3D::Name::allowedCharacters))));
         }
     };
+
+    template<>
+    struct Arbitrary<S3D::SetOperationType> {
+        static Gen<S3D::SetOperationType> arbitrary() {
+            return gen::element(S3D::SetOperationType::Union,
+                                S3D::SetOperationType::Intersection);
+        }
+    };
 }
 
 RC_GTEST_PROP(ColumnDBPropertyTests,
@@ -137,3 +145,42 @@ RC_GTEST_PROP(ColumnDBPropertyTests,
 
     RC_ASSERT(nameFromDb == latestName);
 }
+
+RC_GTEST_PROP(ColumnDBPropertyTests,
+              SetOperationTypeCRDTProperty,
+              (const std::vector<std::tuple<S3D::Timestamp, S3D::SetOperationType>>& entries)) {
+    RC_PRE(entries.size() > 0);
+    auto db = S3D::ColumnDB{shared_connection_in_memory(false)};
+
+    S3D::IDFactory factory = S3D::IDFactory();
+
+    S3D::ID entity = factory();
+
+    for (const auto& entry : entries){
+        RC_PRE(std::get<0>(entry) < 9223372036854775807);
+        db.setOperationType.upsert(entity,std::get<1>(entry), std::get<0>(entry));
+    }
+
+    const auto fromDb = db.setOperationType.latest(entity);
+
+    S3D::Timestamp latestTimestamp = std::get<0>(entries.at(0));
+    for (const auto& entry : entries) {
+        latestTimestamp = std::max(latestTimestamp, std::get<0>(entry));
+    }
+
+    std::vector<std::tuple<S3D::Timestamp, S3D::SetOperationType>> latestEntries{};
+
+    std::copy_if(entries.begin(), entries.end(), std::back_inserter(latestEntries), [&latestTimestamp](auto entry) {
+        return std::get<0>(entry) == latestTimestamp;
+    });
+
+    S3D::SetOperationType latest = std::get<1>(latestEntries.at(0));
+    for (const auto& entry : latestEntries) {
+        latest = preferred_setoperation_type(std::get<1>(entry), latest);
+    }
+
+    RC_ASSERT(fromDb == latest);
+}
+
+
+
