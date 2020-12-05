@@ -160,12 +160,6 @@ RC_GTEST_PROP(DatabasePropertyTests,
 }
 
 RC_GTEST_PROP(DatabasePropertyTests,
-              PreferredNamePredicateCommutative,
-              (const S3D::Name& left, const S3D::Name& right)) {
-    RC_ASSERT(preferred_name(left, right) == preferred_name(right, left));
-}
-
-RC_GTEST_PROP(DatabasePropertyTests,
               ConnectDisconnectCRDTProperty,
               (const std::vector<std::tuple<S3D::Timestamp, bool>>& entries)) {
     RC_PRE(entries.size() > 0);
