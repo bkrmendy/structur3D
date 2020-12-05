@@ -20,7 +20,7 @@ add_library(structur3d_base SHARED
 
         src/db/NodeType.cpp
         src/db/DatabaseImpl.cpp
-        src/db/db_utils.cpp
+        src/db/utils/db_utils.cpp
         src/db/attribute_priority.cpp
 
         src/document/DocumentImpl.cpp
@@ -46,7 +46,7 @@ add_library(structur3d_base SHARED
         src/interactor/ModularInteractor.cpp
 
         src/wire/ServerController.cpp
-        )
+        include/db/utils/crdt_utils.h)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})

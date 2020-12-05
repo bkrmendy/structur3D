@@ -8,7 +8,7 @@
 
 #include "data/Base.h"
 #include "data/Name.h"
-#include "db/db_utils.h"
+#include "db/utils/db_utils.h"
 #include "db/DatabaseImpl.h"
 
 TEST(DatabaseImplTests, TotallyNewDB){

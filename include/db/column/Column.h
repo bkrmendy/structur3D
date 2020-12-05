@@ -22,7 +22,8 @@
 
 #include "db/Database.h"
 #include "db/column/ColumnAttribute.h"
-#include "db/db_utils.h"
+#include "db/utils/db_utils.h"
+#include "db/utils/crdt_utils.h"
 
 
 #include "generated/tables.h"
@@ -30,27 +31,6 @@
 namespace sql = sqlpp::sqlite3;
 
 namespace S3D {
-    auto CRDTCollectGarbage(ColumnAttribute attribute,
-                            const std::string& entity_id,
-                            Timestamp timestamp) {
-        Schema::Attribute attributeTable;
-        return remove_from(attributeTable)
-                .where(attributeTable.colid == to_underlying(attribute)
-                        && attributeTable.timestamp < timestamp
-                        && (attributeTable.entity == entity_id
-                           || attributeTable.deleted == is_deleted(true)));
-    }
-
-    auto LastWriterWinsTimestamp(ColumnAttribute attribute, const std::string& entity_id) {
-        Schema::Attribute attributeTable;
-        return select(max(attributeTable.timestamp))
-                .from(attributeTable)
-                .where(attributeTable.deleted == is_deleted(false)
-                        && attributeTable.colid == to_underlying(attribute)
-                        && attributeTable.entity == entity_id)
-                .group_by(attributeTable.entity);
-    }
-
     template<ColumnAttribute attribute, typename T>
     class Column {
         std::shared_ptr<sql::connection> db_;
@@ -79,7 +59,7 @@ namespace S3D {
 
         auto tx = sqlpp::start_transaction(*db_);
 
-        (*db_)(CRDTCollectGarbage(attribute, eid, timestamp));
+        (*db_)(CRDTCollectGarbage<attribute>(eid, timestamp));
 
         auto serializer = Serializator{};
         auto buffer = serializer.make_buffer();
@@ -106,7 +86,7 @@ namespace S3D {
 
         auto tx = sqlpp::start_transaction(*db_);
 
-        (*db_)(CRDTCollectGarbage(attribute, eid, timestamp));
+        (*db_)(CRDTCollectGarbage<attribute>(eid, timestamp));
 
         auto serializer = Serializator{};
         auto buffer = serializer.make_buffer();
@@ -137,7 +117,7 @@ namespace S3D {
                                  .where(attributeTable.deleted == is_deleted(false)
                                         && attributeTable.colid == to_underlying(attribute)
                                         && attributeTable.entity == eid
-                                        && attributeTable.timestamp == LastWriterWinsTimestamp(attribute, eid)));
+                                        && attributeTable.timestamp == LastWriterWinsTimestamp<attribute>(eid)));
 
         if (result.empty()) {
             return std::nullopt;

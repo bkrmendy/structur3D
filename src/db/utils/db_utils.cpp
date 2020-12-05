@@ -2,7 +2,7 @@
 // Created by Berci on 2020. 12. 04..
 //
 
-#include "db/db_utils.h"
+#include "db/utils/db_utils.h"
 
 sql::connection in_memory(bool debug) {
     sql::connection_config config;

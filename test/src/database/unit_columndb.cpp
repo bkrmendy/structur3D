@@ -6,7 +6,7 @@
 
 #include "db/ColumnDB.h"
 #include "db/column/Column.h"
-#include "db/db_utils.h"
+#include "db/utils/db_utils.h"
 
 TEST(ColumnTests, CreateColumnDB) {
     auto columndb = S3D::ColumnDB{unique_connection_in_memory(false)};
@@ -61,9 +61,9 @@ TEST(ColumnTests, QueryEntriesAfterTimestampInColumnDB) {
     auto entity = S3D::IDFactory()();
     auto latest_radius = S3D::Radius{17};
 
-    columndb.radius.upsert(entity, S3D::Radius{9}, 9);
+    columndb.radius.upsert(entity, latest_radius, 10); // <- this should show up
+    columndb.radius.upsert(entity, S3D::Radius{9}, 9); // <- this should show up
     columndb.radius.upsert(entity, S3D::Radius{4}, 4);
-    columndb.radius.upsert(entity, latest_radius, 10);
     columndb.radius.upsert(entity, S3D::Radius{8}, 8);
     columndb.radius.upsert(entity, S3D::Radius{2}, 2);
 

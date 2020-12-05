@@ -2,7 +2,7 @@
 // Created by Berci on 2020. 11. 21..
 //
 
-#include <db/db_utils.h>
+#include <db/utils/db_utils.h>
 #include "gtest/gtest.h"
 #include "rapidcheck.h"
 #include "rapidcheck/gtest.h"
