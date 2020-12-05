@@ -8,16 +8,17 @@
 
 #include "data/Base.h"
 #include "data/Name.h"
+#include "db/db_utils.h"
 #include "db/DatabaseImpl.h"
 
 TEST(DatabaseImplTests, TotallyNewDB){
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     EXPECT_TRUE(db.documents().empty());
 }
 
 TEST(DatabaseImplTests, CreateSphere) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
 
@@ -47,7 +48,7 @@ TEST(DatabaseImplTests, CreateSphere) {
 }
 
 TEST(DatabaseImplTests, CreateSetOpNode) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
@@ -72,7 +73,7 @@ TEST(DatabaseImplTests, CreateSetOpNode) {
 }
 
 TEST(DatabaseImplTests, UpdateDocumentName) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
 
@@ -91,7 +92,7 @@ TEST(DatabaseImplTests, UpdateDocumentName) {
 }
 
 TEST(DatabaseImplTests, ConcurrentUpdateNameChoosesLexicoGraphically) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
@@ -108,7 +109,7 @@ TEST(DatabaseImplTests, ConcurrentUpdateNameChoosesLexicoGraphically) {
 }
 
 TEST(DatabaseImplTests, UpdateRadiusOutOfOrder) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
 
@@ -133,7 +134,7 @@ TEST(DatabaseImplTests, UpdateRadiusOutOfOrder) {
 }
 
 TEST(DatabaseImplTests, RetractSphereNode) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
@@ -158,7 +159,7 @@ TEST(DatabaseImplTests, RetractSphereNode) {
 }
 
 TEST(DatabaseImplTests, RetractSetNode) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
@@ -181,7 +182,7 @@ TEST(DatabaseImplTests, RetractSetNode) {
 }
 
 TEST(DatabaseImplTests, LookupNonExistentSphere) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     auto factory = S3D::IDFactory();
     auto entityFromThinAir = factory();
 
@@ -189,7 +190,7 @@ TEST(DatabaseImplTests, LookupNonExistentSphere) {
 }
 
 TEST(DatabaseImplTests, LookUpNonExistentSetNode) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     auto factory = S3D::IDFactory();
     auto entityFromThinAir = factory();
 
@@ -197,7 +198,7 @@ TEST(DatabaseImplTests, LookUpNonExistentSetNode) {
 }
 
 TEST(DatabaseImplTests, LookupSphereWithoutCoord) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
@@ -215,7 +216,7 @@ TEST(DatabaseImplTests, LookupSphereWithoutCoord) {
 }
 
 TEST(DatabaseImplTests, LookupSphereWithoutRadius) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     auto factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
@@ -233,7 +234,7 @@ TEST(DatabaseImplTests, LookupSphereWithoutRadius) {
 }
 
 TEST(DatabaseImplTests, LookUpIncompleteSetNode) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
@@ -250,7 +251,7 @@ TEST(DatabaseImplTests, LookUpIncompleteSetNode) {
 }
 
 TEST(DatabaseImplTests, LookupDocumentWithoutName) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     auto makeID = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
 
@@ -263,7 +264,7 @@ TEST(DatabaseImplTests, LookupDocumentWithoutName) {
 }
 
 TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     auto makeID = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
 
@@ -316,7 +317,7 @@ TEST(DatabaseImplTests, CreateAndReadSimpleGraph) {
 }
 
 TEST(DatabaseImplTests, OutOfOrderUpdateName) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
 
@@ -332,7 +333,7 @@ TEST(DatabaseImplTests, OutOfOrderUpdateName) {
 }
 
 TEST(DatabaseImplTests, ReadEdges) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
 
@@ -350,7 +351,7 @@ TEST(DatabaseImplTests, ReadEdges) {
 }
 
 TEST(DatabaseImplTests, DisconnectEdges) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
 
@@ -371,7 +372,7 @@ TEST(DatabaseImplTests, DisconnectEdges) {
 }
 
 TEST(DatabaseImplTests, ConcurrentlyConnectDisconnectEdges) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     S3D::IDFactory factory = S3D::IDFactory();
 
     S3D::ID document = factory();
@@ -389,7 +390,7 @@ TEST(DatabaseImplTests, ConcurrentlyConnectDisconnectEdges) {
 }
 
 TEST(DatabaseImplTests, ConnectDisconnectOutOfOrderEdges) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     S3D::IDFactory factory = S3D::IDFactory();
 
     S3D::ID document = factory();
@@ -407,7 +408,7 @@ TEST(DatabaseImplTests, ConnectDisconnectOutOfOrderEdges) {
 }
 
 TEST(DatabaseImplTests, DisconnectNonExistentEdges) {
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     S3D::IDFactory factory = S3D::IDFactory();
     auto now = S3D::TimestampFactory().timestamp();
 

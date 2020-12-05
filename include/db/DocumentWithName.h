@@ -12,7 +12,8 @@
 #include <string>
 #include <utility>
 
-#include "../data/Base.h"
+#include "data/Base.h"
+#include "data/Name.h"
 
 namespace S3D {
 

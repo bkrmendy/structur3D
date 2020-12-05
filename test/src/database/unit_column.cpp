@@ -3,8 +3,9 @@
 //
 
 #include "gtest/gtest.h"
-#include "db/Column.h"
+#include "db/ColumnDB.h"
 
-TEST(ColumnTests, Smoke) {
+TEST(ColumnTests, CreateColumnDB) {
+
     EXPECT_EQ(1, 1);
 }

@@ -2,6 +2,7 @@
 // Created by Berci on 2020. 11. 21..
 //
 
+#include <db/db_utils.h>
 #include "gtest/gtest.h"
 #include "rapidcheck.h"
 #include "rapidcheck/gtest.h"
@@ -42,7 +43,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
                               S3D::Timestamp,
                               float>>>(rc::gen::tuple(rc::gen::arbitrary<S3D::Timestamp>(), rc::gen::positive<float>()));
       RC_PRE(entries.size() > 0);
-      auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
       S3D::IDFactory factory = S3D::IDFactory();
 
@@ -78,7 +79,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
               (const std::vector<std::tuple<S3D::Timestamp, S3D::Coord>>& entries)) {
               RC_PRE(entries.size() > 0);
 
-              auto db = S3D::DatabaseImpl::inMemory(false);
+              auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
               S3D::IDFactory factory = S3D::IDFactory();
 
@@ -122,7 +123,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
               NameCRDTProperty,
               (const std::vector<std::tuple<S3D::Timestamp, S3D::Name>>& entries)) {
     RC_PRE(entries.size() > 0);
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
 
     S3D::IDFactory factory = S3D::IDFactory();
 
@@ -166,7 +167,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
               ConnectDisconnectCRDTProperty,
               (const std::vector<std::tuple<S3D::Timestamp, bool>>& entries)) {
     RC_PRE(entries.size() > 0);
-    auto db = S3D::DatabaseImpl::inMemory(false);
+    auto db = S3D::DatabaseImpl{connection_in_memory(false)};
     S3D::IDFactory factory = S3D::IDFactory();
 
     S3D::ID document = factory();

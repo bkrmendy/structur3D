@@ -9,7 +9,6 @@
 #ifndef SQLite3Database_h
 #define SQLite3Database_h
 
-#include <iostream>
 #include <memory>
 
 #include "Database.h"
@@ -22,23 +21,6 @@ namespace S3D {
 class DatabaseImpl : public Database {
     std::unique_ptr<sql::connection> db;
 public:
-    static DatabaseImpl inMemory(bool debug) {
-        sql::connection_config config;
-        config.path_to_database = ":memory:";
-        config.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-        config.debug = debug;
-
-        return DatabaseImpl{std::make_unique<sql::connection>(config)};
-    }
-
-    static DatabaseImpl atPath(const char* path) {
-        sql::connection_config config;
-        config.path_to_database = path;
-        config.flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-
-        return DatabaseImpl{std::make_unique<sql::connection>(config)};
-    }
-
     static std::vector<std::string> tables();
     static std::vector<std::string> indices();
 
