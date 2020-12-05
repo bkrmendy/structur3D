@@ -30,6 +30,7 @@ add_library(structur3d_base SHARED
         src/data/Graph.cpp
         src/data/Radius.cpp
         src/data/Coord.cpp
+        src/data/Name.cpp
 
         src/base/SetOperationType.cpp
         src/base/Radius.cpp
@@ -38,7 +39,7 @@ add_library(structur3d_base SHARED
 
         src/mesh/MeshFactory.cpp
 
-        src/utils/random_string.cpp src/data/Name.cpp
+        src/utils/random_string.cpp
 
         src/utils/approximately_equal.cpp
         src/interactor/ModularInteractor.cpp

@@ -37,4 +37,4 @@ std::shared_ptr<sql::connection> shared_connection_from_path(const char* path) {
     return std::make_shared<sql::connection>(from_path(path));
 }
 
-constexpr int is_deleted(bool deleted) { return deleted ? 1 : 0; }
+int is_deleted(bool deleted) { return deleted ? 1 : 0; }
