@@ -48,17 +48,17 @@ namespace S3D {
         Column(std::shared_ptr<sql::connection> db)
             : db_{std::move(db)} { }
 
-        void upsert(const ID& entity_id, const T& thing, Timestamp timestamp);
+        void upsert(const ID& entity_id, const T& thing, Timestamp timestamp) const;
 
-        void retract(const ID& entity_id, const T& thing, Timestamp timestamp);
+        void retract(const ID& entity_id, const T& thing, Timestamp timestamp) const;
 
-        T latest(const ID& eid);
+        std::optional<T> latest(const ID& eid) const;
 
-        std::vector<T> newer_than(ID&, Timestamp);
+        std::vector<T> newer_than(ID&, Timestamp) const;
     };
 
     template<ColumnAttribute attribute, typename T>
-    void Column<attribute, T>::upsert(const ID &entity_id, const T &thing, Timestamp timestamp) {
+    void Column<attribute, T>::upsert(const ID &entity_id, const T &thing, Timestamp timestamp) const {
         const auto eid = to_string(entity_id);
 
         auto tx = sqlpp::start_transaction(*db_);
@@ -85,17 +85,39 @@ namespace S3D {
     }
 
     template<ColumnAttribute attribute, typename T>
-    void Column<attribute, T>::retract(const ID &entity_id, const T &thing, Timestamp timestamp) {
+    void Column<attribute, T>::retract(const ID &entity_id, const T &thing, Timestamp timestamp) const {
+        const auto eid = to_string(entity_id);
 
+        auto tx = sqlpp::start_transaction(*db_);
+
+        (*db_)(CRDTCollectGarbage(attribute, eid, timestamp));
+
+        auto serializer = Serializator{};
+        auto buffer = serializer.make_buffer();
+
+        auto size = serializer.serialize(buffer, thing);
+
+        Schema::Attribute columnTable;
+
+        (*db_)(
+                insert_into(columnTable)
+                        .set(columnTable.deleted = is_deleted(true),
+                             columnTable.timestamp = timestamp,
+                             columnTable.entity = eid,
+                             columnTable.colid = to_underlying(attribute),
+                             columnTable.attrib = buffer,
+                             columnTable.size = size));
+
+        tx.commit();
     }
 
     template<ColumnAttribute attribute, typename T>
-    T Column<attribute, T>::latest(const ID &) {
-        return nullptr;
+    std::optional<T> Column<attribute, T>::latest(const ID &) const {
+        return std::nullopt;
     }
 
     template<ColumnAttribute attribute, typename T>
-    std::vector<T> Column<attribute, T>::newer_than(ID &, Timestamp) {
+    std::vector<T> Column<attribute, T>::newer_than(ID &, Timestamp) const {
         return std::vector<T>();
     }
 }
