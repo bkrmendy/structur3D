@@ -44,7 +44,7 @@ add_library(structur3d_base SHARED
         src/interactor/ModularInteractor.cpp
 
         src/wire/ServerController.cpp
-        )
+        include/db/column/ColumnAttribute.h)
 
 find_package(PNG)
 set(LIBS ${PNG_LIBRARIES})

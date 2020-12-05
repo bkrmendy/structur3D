@@ -11,7 +11,11 @@
 
 namespace sql = sqlpp::sqlite3;
 
-std::unique_ptr<sql::connection> connection_in_memory(bool debug);
-std::unique_ptr<sql::connection> connection_from_path(const char* path);
+std::unique_ptr<sql::connection> unique_connection_in_memory(bool debug);
+std::unique_ptr<sql::connection> unique_connection_from_path(const char* path);
+
+std::shared_ptr<sql::connection> shared_connection_in_memory(bool debug);
+std::shared_ptr<sql::connection> shared_connection_from_path(const char* path);
+constexpr int is_deleted(bool deleted);
 
 #endif //STRUCTUR3D_BASE_DB_UTILS_H
