@@ -40,10 +40,10 @@ namespace S3D {
 
         explicit ColumnDB(std::shared_ptr<sql::connection> db)
             : db_{std::move(db)}
-            , coordinate{db_, preferred_coord}
-            , radius{db_, preferred_radius}
-            , name{db_, preferred_name}
-            , setOperationType{db_, preferred_setoperation_type} {
+            , coordinate{db_, preferred}
+            , radius{db_, preferred}
+            , name{db_, preferred}
+            , setOperationType{db_, preferred} {
             db_->execute(schema);
             db_->execute(index_entity);
             db_->execute(index_timestamp);

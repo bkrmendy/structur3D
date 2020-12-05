@@ -53,25 +53,25 @@ namespace rc {
 RC_GTEST_PROP(PreferredCommutativeTests,
         PreferredNamePredicateCommutative,
 (const S3D::Name& left, const S3D::Name& right)) {
-    RC_ASSERT(preferred_name(left, right) == preferred_name(right, left));
+    RC_ASSERT(preferred(left, right) == preferred(right, left));
 }
 
 RC_GTEST_PROP(PreferredCommutativeTests,
               PreferredCoordPredicateCommutative,
               (const S3D::Coord& left, const S3D::Coord& right)) {
-    RC_ASSERT(preferred_coord(left, right) == preferred_coord(right, left));
+    RC_ASSERT(preferred(left, right) == preferred(right, left));
 }
 
 RC_GTEST_PROP(PreferredCommutativeTests,
               PreferredRadiusPredicateCommutative,
               (const S3D::Radius& left, const S3D::Radius& right)) {
-    RC_ASSERT(preferred_radius(left, right) == preferred_radius(right, left));
+    RC_ASSERT(preferred(left, right) == preferred(right, left));
 }
 
 RC_GTEST_PROP(PreferredCommutativeTests,
               PreferredSetOpPredicateCommutative,
               (const S3D::SetOperationType& left, const S3D::SetOperationType& right)) {
-    RC_ASSERT(preferred_setoperation_type(left, right) == preferred_setoperation_type(right, left));
+    RC_ASSERT(preferred(left, right) == preferred(right, left));
 }
 
 

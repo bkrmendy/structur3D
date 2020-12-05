@@ -153,7 +153,7 @@ RC_GTEST_PROP(DatabasePropertyTests,
 
     S3D::Name latestName = std::get<1>(latestEntries.at(0));
     for (const auto& entry : latestEntries) {
-        latestName = preferred_name(std::get<1>(entry), latestName);
+        latestName = preferred(std::get<1>(entry), latestName);
     }
 
     RC_ASSERT(nameFromDb == latestName);

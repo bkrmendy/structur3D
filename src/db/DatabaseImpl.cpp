@@ -241,7 +241,7 @@ namespace S3D {
 
                 for (const auto& row : nameLookup) {
                     auto this_name = Name{row.name};
-                    latest_name = preferred_name(latest_name, this_name);
+                    latest_name = preferred(latest_name, this_name);
                 }
 
                 std::stringstream stream{documentRow.document};

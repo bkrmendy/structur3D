@@ -97,7 +97,7 @@ RC_GTEST_PROP(ColumnDBPropertyTests,
         auto currentTimestamp = std::get<0>(row);
 
         if (maxCoordTimestamp == currentTimestamp) {
-            farthestCoord = preferred_coord(farthestCoord, coord);
+            farthestCoord = preferred(farthestCoord, coord);
         } else if (currentTimestamp > maxCoordTimestamp) {
             farthestCoord = coord;
             maxCoordTimestamp = currentTimestamp;
@@ -140,7 +140,7 @@ RC_GTEST_PROP(ColumnDBPropertyTests,
 
     S3D::Name latestName = std::get<1>(latestEntries.at(0));
     for (const auto& entry : latestEntries) {
-        latestName = preferred_name(std::get<1>(entry), latestName);
+        latestName = preferred(std::get<1>(entry), latestName);
     }
 
     RC_ASSERT(nameFromDb == latestName);
@@ -176,7 +176,7 @@ RC_GTEST_PROP(ColumnDBPropertyTests,
 
     S3D::SetOperationType latest = std::get<1>(latestEntries.at(0));
     for (const auto& entry : latestEntries) {
-        latest = preferred_setoperation_type(std::get<1>(entry), latest);
+        latest = preferred(std::get<1>(entry), latest);
     }
 
     RC_ASSERT(fromDb == latest);
