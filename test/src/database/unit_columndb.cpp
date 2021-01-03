@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "db/ColumnDB.h"
-#include "db/column/Column.h"
+#include "db/column/LWWRegister.h"
 #include "db/utils/db_utils.h"
 
 TEST(ColumnTests, CreateColumnDB) {

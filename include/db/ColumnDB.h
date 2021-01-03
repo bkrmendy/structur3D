@@ -8,7 +8,8 @@
 #include "Database.h"
 #include "sqlpp11/sqlite3/sqlite3.h"
 
-#include "db/column/Column.h"
+#include "db/column/LWWRegister.h"
+#include "db/column/LWWElementSet.h"
 #include "db/attribute_priority.h"
 
 namespace S3D {
@@ -31,10 +32,10 @@ namespace S3D {
         constexpr static const char* index_colid = R"(CREATE INDEX attribute_colid_index ON attribute(colid);)";
 
     public:
-        const Column<ColumnAttribute::Coordinate, Coord> coordinate;
-        const Column<ColumnAttribute::Radius, Radius> radius;
-        const Column<ColumnAttribute::Name, Name> name;
-        const Column<ColumnAttribute::SetOperationType, SetOperationType> setOperationType;
+        const LWWRegister<ColumnAttribute::Coordinate, Coord> coordinate;
+        const LWWRegister<ColumnAttribute::Radius, Radius> radius;
+        const LWWRegister<ColumnAttribute::Name, Name> name;
+        const LWWRegister<ColumnAttribute::SetOperationType, SetOperationType> setOperationType;
 
         ColumnDB() = delete;
 

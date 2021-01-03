@@ -2,8 +2,8 @@
 // Created by Berci on 2020. 12. 02..
 //
 
-#ifndef STRUCTUR3D_BASE_COLUMN_H
-#define STRUCTUR3D_BASE_COLUMN_H
+#ifndef STRUCTUR3D_BASE_LWWREGISTER_H
+#define STRUCTUR3D_BASE_LWWREGISTER_H
 
 #include <memory>
 #include <utility>
@@ -25,21 +25,20 @@
 #include "db/utils/db_utils.h"
 #include "db/utils/crdt_utils.h"
 
-
 #include "generated/tables.h"
 
 namespace sql = sqlpp::sqlite3;
 
 namespace S3D {
     template<ColumnAttribute attribute, typename T>
-    class Column {
+    class LWWRegister {
         std::shared_ptr<sql::connection> db_;
         std::function<T(T&, T&)> preferred_;
 
     public:
-        Column() = delete;
+        LWWRegister() = delete;
 
-        Column(std::shared_ptr<sql::connection> db, std::function<T(T&, T&)> preferred)
+        LWWRegister(std::shared_ptr<sql::connection> db, std::function<T(T&, T&)> preferred)
             : db_{std::move(db)}
             , preferred_{std::move(preferred)}
             { }
@@ -54,7 +53,7 @@ namespace S3D {
     };
 
     template<ColumnAttribute attribute, typename T>
-    void Column<attribute, T>::upsert(const ID &entity_id, const T &thing, Timestamp timestamp) const {
+    void LWWRegister<attribute, T>::upsert(const ID &entity_id, const T &thing, Timestamp timestamp) const {
         const auto eid = to_string(entity_id);
 
         auto tx = sqlpp::start_transaction(*db_);
@@ -81,7 +80,7 @@ namespace S3D {
     }
 
     template<ColumnAttribute attribute, typename T>
-    void Column<attribute, T>::retract(const ID &entity_id, const T &thing, Timestamp timestamp) const {
+    void LWWRegister<attribute, T>::retract(const ID &entity_id, const T &thing, Timestamp timestamp) const {
         const auto eid = to_string(entity_id);
 
         auto tx = sqlpp::start_transaction(*db_);
@@ -108,7 +107,7 @@ namespace S3D {
     }
 
     template<ColumnAttribute attribute, typename T>
-    std::optional<T> Column<attribute, T>::latest(const ID& entity_id) const {
+    std::optional<T> LWWRegister<attribute, T>::latest(const ID& entity_id) const {
         std::string eid = to_string(entity_id);
         Schema::Attribute attributeTable;
         auto result
@@ -140,7 +139,7 @@ namespace S3D {
     }
 
     template<ColumnAttribute attribute, typename T>
-    std::vector<T> Column<attribute, T>::newer_than(ID& entity_id, Timestamp timestamp) const {
+    std::vector<T> LWWRegister<attribute, T>::newer_than(ID& entity_id, Timestamp timestamp) const {
         std::string eid = to_string(entity_id);
         Schema::Attribute attributeTable;
         auto result
@@ -166,4 +165,4 @@ namespace S3D {
     }
 }
 
-#endif //STRUCTUR3D_BASE_COLUMN_H
+#endif //STRUCTUR3D_BASE_LWWREGISTER_H
