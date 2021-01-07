@@ -94,6 +94,44 @@ namespace S3D {
 
         tx.commit();
     }
+
+    template<ColumnAttribute attribute, typename T>
+    std::set<T> LWWElementSet<attribute, T>::latest(const ID &eid) const {
+        std::string entity_id = to_string(eid);
+        Schema::Edge edge;
+        auto lookup
+                = select(edge.entityTo, max(edge.timestamp))
+                        .from(edge)
+                        .where(edge.entity == entity_id)
+                        .group_by(edge.entityTo);
+
+        std::set<ID> res;
+
+        for (const auto& row : (*db_)(lookup)) {
+            Schema::Edge thisEdge;
+            auto latestEdges =
+                    (*db_)(select(thisEdge.deleted)
+                                  .from(thisEdge)
+                                  .where(thisEdge.entity == entity_id
+                                         && thisEdge.entityTo == row.entityTo
+                                         && thisEdge.timestamp == row.max));
+
+            bool alive = false;
+            for (const auto& entry : latestEdges) {
+                int deleted = entry.deleted;
+                alive |= deleted == 0;
+            }
+
+            if (alive) {
+                std::stringstream stream{row.entityTo};
+                ID uid;
+                stream >> uid;
+                res.insert(uid);
+            }
+        }
+
+        return res;
+    }
 }
 
 #endif //STRUCTUR3D_BASE_LWWELEMENTSET_H
