@@ -6,33 +6,37 @@
 #define STRUCTUR3D_BASE_LWWELEMENTSET_H
 
 #include <memory>
-#include <set>
-#include <functional>
 #include <utility>
+#include <numeric>
 
 #include <sqlpp11/sqlpp11.h>
 #include <sqlpp11/sqlite3/sqlite3.h>
 #include <sqlpp11/sqlite3/connection.h>
 
+#include "utils/to_underlying.h"
+#include "utils/Serializator.h"
+#include "utils/attribute_serialization.h"
+
 #include "data/Base.h"
 #include "data/Timestamp.h"
 
+#include "db/Database.h"
+#include "db/column/ColumnAttribute.h"
+#include "db/utils/db_utils.h"
 #include "db/utils/crdt_utils.h"
+
+#include "generated/tables.h"
 
 namespace S3D {
 
     template<ColumnAttribute attribute, typename T>
     class LWWElementSet {
         std::shared_ptr<sql::connection> db_;
-        std::function<T(T&, T&)> preferred_;
 
     public:
         LWWElementSet() = delete;
 
-        LWWElementSet(std::shared_ptr<sql::connection> db, const std::function<T(T &, T &)> &preferred)
-            : db_(std::move(db))
-            , preferred_(preferred)
-            {}
+        LWWElementSet(std::shared_ptr<sql::connection> db) : db_(std::move(db)) {}
 
         void upsert(const ID& entity_id, const T& thing, Timestamp timestamp) const;
 
@@ -98,35 +102,41 @@ namespace S3D {
     template<ColumnAttribute attribute, typename T>
     std::set<T> LWWElementSet<attribute, T>::latest(const ID &eid) const {
         std::string entity_id = to_string(eid);
-        Schema::Edge edge;
+        Schema::Attribute columnTable;
         auto lookup
-                = select(edge.entityTo, max(edge.timestamp))
-                        .from(edge)
-                        .where(edge.entity == entity_id)
-                        .group_by(edge.entityTo);
+                = select(columnTable.attrib, columnTable.size, max(columnTable.timestamp))
+                        .from(columnTable)
+                        .where(columnTable.entity == entity_id
+                               && columnTable.colid == to_underlying(attribute))
+                        .group_by(columnTable.attrib, columnTable.size);
 
         std::set<ID> res;
 
+        auto serializer = S3D::Serializator{};
+
         for (const auto& row : (*db_)(lookup)) {
-            Schema::Edge thisEdge;
-            auto latestEdges =
-                    (*db_)(select(thisEdge.deleted)
-                                  .from(thisEdge)
-                                  .where(thisEdge.entity == entity_id
-                                         && thisEdge.entityTo == row.entityTo
-                                         && thisEdge.timestamp == row.max));
+            Schema::Attribute thisColumn;
+            auto latestEntries =
+                    (*db_)(select(thisColumn.deleted)
+                                  .from(thisColumn)
+                                  .where(thisColumn.entity == entity_id
+                                         && thisColumn.attrib == row.attrib
+                                         && columnTable.colid == to_underlying(attribute)
+                                         && thisColumn.size == row.size
+                                         && thisColumn.timestamp == row.max));
 
             bool alive = false;
-            for (const auto& entry : latestEdges) {
+            for (const auto& entry : latestEntries) {
                 int deleted = entry.deleted;
                 alive |= deleted == 0;
             }
 
             if (alive) {
-                std::stringstream stream{row.entityTo};
-                ID uid;
-                stream >> uid;
-                res.insert(uid);
+                T value{};
+                Serializator::Buffer buffer = row.attrib;
+                unsigned int size = row.size;
+                serializer.deserialize(buffer, value, size);
+                res.insert(value);
             }
         }
 

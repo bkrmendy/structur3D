@@ -25,6 +25,7 @@ add_executable(tests
 
                 src/database/units.cpp
                 src/database/unit_columndb_lwwregister.cpp
+                src/database/unit_columndb_lwwelementset.cpp
                 src/database/property_columndb.cpp
                 src/database/property_preferred_commutative.cpp
         )

@@ -18,5 +18,6 @@ std::shared_ptr<sql::connection> shared_connection_in_memory(bool debug);
 std::shared_ptr<sql::connection> shared_connection_from_path(const char* path);
 
 int is_deleted(bool deleted);
+bool is_deleted(int deleted);
 
 #endif //STRUCTUR3D_BASE_DB_UTILS_H

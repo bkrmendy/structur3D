@@ -47,9 +47,9 @@ namespace S3D {
 
         void retract(const ID& entity_id, const T& thing, Timestamp timestamp) const;
 
-        std::optional<T> latest(const ID& eid) const;
+        std::optional<T> latest(const ID& entity_id) const;
 
-        std::vector<T> newer_than(ID&, Timestamp) const;
+        std::vector<T> newer_than(ID& entity_id, Timestamp timestamp) const;
     };
 
     template<ColumnAttribute attribute, typename T>

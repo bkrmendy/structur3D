@@ -10,7 +10,8 @@ namespace S3D {
         Coordinate = 0,
         Radius = 1,
         Name = 2,
-        SetOperationType = 3
+        SetOperationType = 3,
+        Edge = 3,
     };
 }
 

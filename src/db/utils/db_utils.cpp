@@ -38,3 +38,4 @@ std::shared_ptr<sql::connection> shared_connection_from_path(const char* path) {
 }
 
 int is_deleted(bool deleted) { return deleted ? 1 : 0; }
+bool is_deleted(int deleted) { return deleted == 1; }

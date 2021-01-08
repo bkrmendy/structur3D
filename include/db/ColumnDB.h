@@ -36,6 +36,7 @@ namespace S3D {
         const LWWRegister<ColumnAttribute::Radius, Radius> radius;
         const LWWRegister<ColumnAttribute::Name, Name> name;
         const LWWRegister<ColumnAttribute::SetOperationType, SetOperationType> setOperationType;
+        const LWWElementSet<ColumnAttribute::Edge, ID> edges;
 
         ColumnDB() = delete;
 
@@ -44,7 +45,9 @@ namespace S3D {
             , coordinate{db_, [](const auto& a, const auto& b){ return preferred(a, b); }}
             , radius{db_, [](const auto& a, const auto& b){ return preferred(a, b); }}
             , name{db_, [](const auto& a, const auto& b){ return preferred(a, b); }}
-            , setOperationType{db_, [](const auto& a, const auto& b){ return preferred(a, b); }} {
+            , setOperationType{db_, [](const auto& a, const auto& b){ return preferred(a, b); }}
+            , edges{db_}
+        {
             db_->execute(schema);
             db_->execute(index_entity);
             db_->execute(index_timestamp);

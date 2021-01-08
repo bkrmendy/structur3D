@@ -8,11 +8,11 @@
 #include "db/column/LWWRegister.h"
 #include "db/utils/db_utils.h"
 
-TEST(ColumnTests, CreateColumnDB) {
+TEST(LWWRegisterColumnTests, CreateColumnDB) {
     auto columndb = S3D::ColumnDB{unique_connection_in_memory(false)};
 }
 
-TEST(ColumnTests, UpsertInColumnDB) {
+TEST(LWWRegisterColumnTests, UpsertInColumnDB) {
     auto columndb = S3D::ColumnDB{unique_connection_in_memory(false)};
     auto entity = S3D::IDFactory()();
     auto radius = S3D::Radius{4};
@@ -25,7 +25,7 @@ TEST(ColumnTests, UpsertInColumnDB) {
     EXPECT_EQ(radiusFromDB.value(), radius);
 }
 
-TEST(ColumnTests, RetractInColumnDB) {
+TEST(LWWRegisterColumnTests, RetractInColumnDB) {
     auto columndb = S3D::ColumnDB{unique_connection_in_memory(false)};
     auto entity = S3D::IDFactory()();
     auto radius = S3D::Radius{4};
@@ -39,7 +39,7 @@ TEST(ColumnTests, RetractInColumnDB) {
     EXPECT_FALSE(radiusFromDB.has_value());
 }
 
-TEST(ColumnTests, QueryLatestEntryInColumnDB) {
+TEST(LWWRegisterColumnTests, QueryLatestEntryInColumnDB) {
     auto columndb = S3D::ColumnDB{unique_connection_in_memory(false)};
     auto entity = S3D::IDFactory()();
     auto latest_radius = S3D::Radius{17};
@@ -56,7 +56,7 @@ TEST(ColumnTests, QueryLatestEntryInColumnDB) {
     EXPECT_EQ(radiusFromDB.value(), latest_radius);
 }
 
-TEST(ColumnTests, QueryEntriesAfterTimestampInColumnDB) {
+TEST(LWWRegisterColumnTests, QueryEntriesAfterTimestampInColumnDB) {
     auto columndb = S3D::ColumnDB{unique_connection_in_memory(false)};
     auto entity = S3D::IDFactory()();
     auto latest_radius = S3D::Radius{17};
