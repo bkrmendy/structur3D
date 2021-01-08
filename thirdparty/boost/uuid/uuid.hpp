@@ -146,6 +146,15 @@ public:
 public:
     // or should it be array<uint8_t, 16>
     uint8_t data[16];
+
+    /*
+     * 01. 08 `serialize` fn placed here as a method to make bitsery compile.
+     * In case of solution where this can be moved to a free function, refactor immediately.
+     */
+    template<typename S>
+    void serialize(S& s) {
+        s.container(data);
+    }
 };
 
 bool operator== (uuid const& lhs, uuid const& rhs) BOOST_NOEXCEPT;

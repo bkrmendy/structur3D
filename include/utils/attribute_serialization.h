@@ -22,11 +22,6 @@
 #include "data/Radius.h"
 
 namespace S3D {
-    template<typename S>
-    void serialize(S& s, ID& uid) {
-        s.container(uid.data, [](S& s, uint8_t byte) { s.value1b(byte); });
-    }
-
     template <typename S>
     void serialize(S& s, SetOperationType& setOp) {
         s.value4b(setOp);

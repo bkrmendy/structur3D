@@ -49,6 +49,14 @@ namespace rc {
             return gen::construct<S3D::Radius>(gen::positive<float>());
         }
     };
+
+    template<>
+    struct Arbitrary<S3D::ID> {
+        static Gen<S3D::ID> arbitrary() {
+            auto makeID = S3D::IDFactory();
+            return gen::just<S3D::ID>(makeID());
+        }
+    };
 }
 
 RC_GTEST_PROP(SerializationTest,
@@ -115,6 +123,22 @@ RC_GTEST_PROP(SerializationTest,
     auto success = seri.deserialize(buffer, other, size);
     RC_ASSERT(success
               && setOpType == other);
+}
+
+RC_GTEST_PROP(SerializationTest,
+              IDRoundTrip,
+              (S3D::ID uid)) {
+    S3D::Serializator seri{};
+
+    auto buffer = seri.make_buffer();
+
+    auto size = seri.serialize(buffer, uid);
+
+    S3D::ID other{};
+
+    auto success = seri.deserialize(buffer, other, size);
+    RC_ASSERT(success
+              && uid == other);
 }
 
 
